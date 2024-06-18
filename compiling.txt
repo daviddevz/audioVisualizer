@@ -1,0 +1,10 @@
+**Compiling**
+//add other .cpp files
+g++ -c main.cpp -IC:\SFML-2.6.1\include
+
+**Creating executable file**
+//add other .o files
+g++ main.o -o main -LC:\SFML-2.6.1\lib -lsfml-graphics -lsfml-window -lsfml-system -lopengl32 -lwinmm -lgdi32
+
+**running executable**
+./main.exe
