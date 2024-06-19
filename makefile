@@ -14,7 +14,7 @@ SFML_LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 OBJ = main.o
 
 # Executable name
-BIN = app
+BIN = main
 
 # Target: Build the executable
 all: $(BIN)
