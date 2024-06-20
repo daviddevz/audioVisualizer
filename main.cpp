@@ -1,23 +1,21 @@
 #include <SFML/Graphics.hpp>
-#include <SFML/Window/Mouse.hpp>
+#include <SFML/Window.hpp>
 #include <windows.h>
+#include <commdlg.h>
 #include <iostream>
 #include <string>
 #include "Button.hpp"
 
-unsigned int windowWidth = 2000;
-unsigned int windowHeight = 1000;
-float buttonWidth = 500;
-float buttonHeight = 100;
-int fontSize = 50;
-std::string uploadButtonText = "UPLOAD MUSIC";
-
-
-
 int main()
 {
+    unsigned int windowWidth = 2000, windowHeight = 1000;
+    float buttonWidth = 500, buttonHeight = 100;
+    int fontSize = 50;
+    std::string uploadButtonText = "UPLOAD MUSIC", windowTitle = "Audio Visualizer";
+    
+
     // Create the main window
-    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Audio Visualizer");
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), windowTitle, sf::Style::Titlebar | sf::Style::Close);
 
     // Font
     sf::Font font;
@@ -28,23 +26,37 @@ int main()
     // Create button object
     float windowWidthFloat = static_cast<float>(windowWidth);
     float windowHeightFloat = static_cast<float>(windowHeight);
-    UploadButton myUploadButton(sf::Vector2f(windowWidth, windowHeight), font, uploadButtonText, sf::Vector2f(buttonWidth, buttonHeight), fontSize);
+    UploadButton myUploadButton(sf::Vector2f(windowWidthFloat, windowHeightFloat), font, uploadButtonText, sf::Vector2f(buttonWidth, buttonHeight), fontSize);
 
     // Start the game loop
     while (window.isOpen())
     {
-        ShowWindow(GetConsoleWindow(), SW_HIDE);  // Hide console window
+        //ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
         sf::Event event;// Process events
         while (window.pollEvent(event))
         {
-            // Close window: exit
-            if (event.type == sf::Event::Closed){
+            
+            if (event.type == sf::Event::Closed){ // Close window: exit
                 window.close();
+            }
+
+            // Check for button clicks
+            else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left){
+                const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+                if (myUploadButton.isClicked(mousePosition)){
+                    myUploadButton.openFileDir();
+                    break; // Exit the event loop after handling the first click
+                }
+            }
+
+            else if (event.type == sf::Event::MouseMoved){
+                myUploadButton.updateColor(window); //update button color if mouse hover over button
             }
         }
  
         window.clear(); // Clear screen 
         myUploadButton.draw(window); // Draws button
+        
         window.display(); // Update the window
     }
  
