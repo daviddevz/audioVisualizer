@@ -42,8 +42,7 @@ int main()
 
             // Check for button clicks
             else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left){
-                const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-                if (myUploadButton.isClicked(mousePosition)){
+                if (myUploadButton.isClicked(window)){
                     myUploadButton.openFileDir();
                     break; // Exit the event loop after handling the first click
                 }
