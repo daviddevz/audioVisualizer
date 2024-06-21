@@ -1,7 +1,0 @@
-#compile source
-.vscode/*
-makefile
-
-#executable
-*.exe
-*.o

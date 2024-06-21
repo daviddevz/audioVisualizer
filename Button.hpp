@@ -4,49 +4,57 @@
 
 class Button {
 protected:
-    // A struct to store member data of button object 
-    struct ButtonMemberData {
-        float posX; // X position of button
-        float posY; // Y position of button
-        float width; // width of button
-        float height; // height of button
-    };
-    
-    // vector of member data for each button
-    std::vector<ButtonMemberData> buttonMemberDataVect; 
+    // Stores button data
+    /*Create a vector of struct that stores the position (x, y) and dimension (width, height) of each button in base class using
+    get function from each button class*/
 
+    struct ButtonData {
+        float posX;
+        float posY;
+        float width;
+        float height;
+    };
+
+    std::vector<ButtonData> buttonDataVect; // Stores data for all buttons
+    
 public:
     Button() : windowDimension_(sf::Vector2f(0.0, 0.0)) {};
     Button(const sf::Vector2f& windowDimension) : windowDimension_(windowDimension) {
+        // Upload Music Button Data
+        ButtonData uploadButtonData;
+        std::vector<float> uploadButtonDataVect = UploadButton::getButtonData();
+        uploadButtonData.posX = uploadButtonDataVect[0];
+        uploadButtonData.posY = uploadButtonDataVect[1];
+        uploadButtonData.width = uploadButtonDataVect[2];
+        uploadButtonData.height = uploadButtonDataVect[3];
+
+        buttonDataVect.push_back(uploadButtonData);
     };
 
     // Explicit default destructor declaration to the compiler
     virtual ~Button() = default; 
 
-    // Add member data of each button to ButtonMemberData vector 
-    void addButtonMemberData(const ButtonMemberData& buttonMemberData) {
-        buttonMemberDataVect.push_back(buttonMemberData);
-    };
+    virtual void draw(sf::RenderTarget& target) const {};
 
-    /* Iterate over struct vector and check if the current mouse position is within
-    the button dimension. Returns true if user hovers over button else false*/
+    /*Create bool isHover method in base class that returns true if mouse hovers. It iterate over struct data and check if the current mouse
+    position is within the button dimension. If it is, it will reutn true else false. It will take mouse position as a parameter
+    Breaks the iteration when by returning true*/
     bool isHovered(const sf::Vector2i& mousePosition) const {
-        /* Modern C++ iteration over vector type, an iterator points to element in 
-        buttonMemberDataVect by reference*/
-        for(const ButtonMemberData& button : buttonMemberDataVect){
-            if ((mousePosition.x >= static_cast<int>(button.posX) && mousePosition.x <=
-            (static_cast<int>(button.posX) + static_cast<int>(button.width))) &&
-            (mousePosition.y >= static_cast<int>(button.posY) && mousePosition.y <=
-            (static_cast<int>(button.posY) + static_cast<int>(button.height)))) {
-                return true;
-            }
-        }
-        return false;
-    };
+        // Modern C++ iteration over vector type, an iterator points to element in buttonDataVect by reference
+        for(const ButtonData& ele : buttonDataVect){
 
-    virtual bool isClicked(const sf::WindowBase& target) const{return false;};
+        }
+    };
+    
+    virtual bool isClicked(const sf::Vector2i& mousePosition) {return false;};
 
     virtual void updateColor(sf::WindowBase& target) {};
+
+    /* 
+    Refactor UpdateColor function if statement to check if ishover method returns true then update button color else default color
+
+    Remove isClicked method and use isHover method to check if mouse was over button dimension upon click
+    */
 
     sf::Vector2f getWindowDimension(){
         return windowDimension_;
@@ -58,8 +66,7 @@ private:
 
 class UploadButton : public Button{
 public:
-    UploadButton(sf::Vector2f uploadWindowDimension, const sf::Font& font,
-    const std::string& text, const sf::Vector2f& buttonDimension, unsigned int characterSize) :
+    UploadButton(sf::Vector2f uploadWindowDimension, const sf::Font& font, const std::string& text, const sf::Vector2f& buttonDimension, unsigned int characterSize) :
     Button(uploadWindowDimension), buttonDimension_(buttonDimension) {
         //Button design
         float centerX = Button::getWindowDimension().x / 2; // Window X center
@@ -84,16 +91,13 @@ public:
 
         textObject.setPosition(setTextLeftPosX, setTextLeftPosY);
         textObject.setStyle(sf::Text::Bold);
-
-        // Stage member data of upload button and add button data to base class buttonDataVect
-        uploadButtonMemberData.posX = setLeftPosX;
-        uploadButtonMemberData.posY = setLeftPosY;
-        uploadButtonMemberData.width = buttonDimension_.x;
-        uploadButtonMemberData.height = buttonDimension_.y;
-        Button::addButtonMemberData(uploadButtonMemberData);
     };
 
-    void draw(sf::RenderTarget& target) const {
+    std::vector<float> getButtonData() {
+        return {shape.getPosition().x, shape.getPosition().y, buttonDimension_.x, buttonDimension_.y};
+    };
+
+    void draw(sf::RenderTarget& target) const override {
         target.draw(shape);
         target.draw(textObject);
     };
@@ -102,7 +106,8 @@ public:
     void updateColor(sf::WindowBase& target) override {
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
-        if (Button::isHovered(mousePosition)){
+        if ((mousePosition.x >= shape.getPosition().x && mousePosition.x <= shape.getPosition().x + buttonDimension_.x) && 
+            (mousePosition.y >= shape.getPosition().y && mousePosition.y <= shape.getPosition().y + buttonDimension_.y)){
             sf::Color color(210, 215, 211, 255); //Pumice Gray
             shape.setFillColor(color);
         }
@@ -111,11 +116,10 @@ public:
         }
     };
 
-    bool isClicked(const sf::WindowBase& target) const override {
-        const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
-
-        if (Button::isHovered(mousePosition)) {
-            return true;
+    bool isClicked(const sf::Vector2i& mousePosition) override {
+        if ((mousePosition.x >= shape.getPosition().x && mousePosition.x <= shape.getPosition().x + buttonDimension_.x) && 
+            (mousePosition.y >= shape.getPosition().y && mousePosition.y <= shape.getPosition().y + buttonDimension_.y)){
+                return true;
         }
         else {
             return false;
@@ -131,7 +135,6 @@ private:
     sf::Text textObject;
     sf::RectangleShape shape;
     const sf::Vector2f buttonDimension_;
-    Button::ButtonMemberData uploadButtonMemberData;
 };
 
 class PlayButton : public Button{
