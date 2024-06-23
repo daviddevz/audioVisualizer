@@ -1,0 +1,12 @@
+#pragma once
+#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
+#include <windows.h>
+#include <commdlg.h>
+#include <iostream>
+#include <string>
+#include <iostream>
+#include <locale>
+#include <codecvt>
+#include "Button.hpp"
+#include "AudioFileHandling.hpp"

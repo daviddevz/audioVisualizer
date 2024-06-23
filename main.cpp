@@ -1,10 +1,4 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include <windows.h>
-#include <commdlg.h>
-#include <iostream>
-#include <string>
-#include "Button.hpp"
+#include "HeaderFiles.hpp"
 
 int main()
 {
@@ -15,7 +9,8 @@ int main()
     
 
     // Create the main window
-    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), windowTitle, sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), windowTitle,
+    sf::Style::Titlebar | sf::Style::Close);
 
     // Font
     sf::Font font;
@@ -26,7 +21,9 @@ int main()
     // Create button object
     float windowWidthFloat = static_cast<float>(windowWidth);
     float windowHeightFloat = static_cast<float>(windowHeight);
-    UploadButton myUploadButton(sf::Vector2f(windowWidthFloat, windowHeightFloat), font, uploadButtonText, sf::Vector2f(buttonWidth, buttonHeight), fontSize);
+
+    UploadButton myUploadButton(sf::Vector2f(windowWidthFloat, windowHeightFloat), 
+    font, uploadButtonText, sf::Vector2f(buttonWidth, buttonHeight), fontSize);
 
     // Start the game loop
     while (window.isOpen())
@@ -43,8 +40,8 @@ int main()
             // Check for button clicks
             else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left){
                 if (myUploadButton.isClicked(window)){
-                    myUploadButton.openFileDir();
-                    break; // Exit the event loop after handling the first click
+                    sf::WindowHandle windowHandle = window.getSystemHandle();
+                    AudioFileHandling myAudioFile (windowHandle);
                 }
             }
 

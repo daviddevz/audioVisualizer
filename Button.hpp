@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include "HeaderFiles.hpp"
 
 
 class Button {
@@ -19,9 +19,6 @@ public:
     Button() : windowDimension_(sf::Vector2f(0.0, 0.0)) {};
     Button(const sf::Vector2f& windowDimension) : windowDimension_(windowDimension) {
     };
-
-    // Explicit default destructor declaration to the compiler
-    virtual ~Button() = default; 
 
     // Add member data of each button to ButtonMemberData vector 
     void addButtonMemberData(const ButtonMemberData& buttonMemberData) {
@@ -44,13 +41,24 @@ public:
         return false;
     };
 
-    virtual bool isClicked(const sf::WindowBase& target) const{return false;};
+    // Check if button was clicked
+    virtual bool isClicked(const sf::WindowBase& target) const{
+        const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
-    virtual void updateColor(sf::WindowBase& target) {};
+        if (isHovered(mousePosition)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    };
 
     sf::Vector2f getWindowDimension(){
         return windowDimension_;
     };
+
+    // Explicit default destructor declaration to the compiler
+    virtual ~Button() = default; 
 
 private:
     const sf::Vector2f windowDimension_;
@@ -99,11 +107,11 @@ public:
     };
     
     
-    void updateColor(sf::WindowBase& target) override {
+    void updateColor(sf::WindowBase& target) {
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
         if (Button::isHovered(mousePosition)){
-            sf::Color color(210, 215, 211, 255); //Pumice Gray
+            sf::Color color = sf::Color::Yellow; //(210, 215, 211, 255); //Pumice Gray
             shape.setFillColor(color);
         }
         else{
@@ -111,23 +119,7 @@ public:
         }
     };
 
-    bool isClicked(const sf::WindowBase& target) const override {
-        const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
-
-        if (Button::isHovered(mousePosition)) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    void openFileDir() {
-        std::cout<< "Button was clicked" << std::endl;
-    }
-
 private:
-    // Member variables for button properties (text, shape, colors)
     sf::Text textObject;
     sf::RectangleShape shape;
     const sf::Vector2f buttonDimension_;
