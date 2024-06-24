@@ -26,7 +26,7 @@ public:
 
         // Use the converted ANSI string for assignment
         char* ansiFilePath = convertBtwnWidecharAndANSI(writableWideFilePath);
-        ofn.lpstrFile = ansiFilePath; // C-style
+        ofn.lpstrFile = ansiFilePath;
 
         // Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
         // Use the contents of szFile to initialize itself.
@@ -43,10 +43,13 @@ public:
         
         // Display the Open dialog box based on configuration of ofn structure 
         if (GetOpenFileName(&ofn)==TRUE) { 
+            // Create handle for the file that will be used for other operation
             hf = CreateFile(ofn.lpstrFile, GENERIC_READ, 0, (LPSECURITY_ATTRIBUTES) NULL, OPEN_EXISTING,
             FILE_ATTRIBUTE_NORMAL,(HANDLE) NULL);
+
+            CloseHandle(hf); // Close handle to release system resources
         }
-        
+
         // Deallocate memory after use
         delete[] ansiFilePath;
         delete[] writableWideFilePath;
