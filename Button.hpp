@@ -111,7 +111,7 @@ public:
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
         if (Button::isHovered(mousePosition)){
-            sf::Color color = sf::Color::Yellow; //(210, 215, 211, 255); //Pumice Gray
+            sf::Color color(210, 215, 211, 255); //Pumice Gray
             shape.setFillColor(color);
         }
         else{

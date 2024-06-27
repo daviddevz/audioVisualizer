@@ -4,8 +4,7 @@ g++ -c main.cpp -IC:\SFML-2.6.1\include
 
 **Creating executable file**
 //add other .o files
-g++ main.o -o main -LC:\SFML-2.6.1\lib -lsfml-graphics -lsfml-window -lsfml-system
--lopengl32 -lwinmm -lgdi32 -lcomdlg32 -lsfml-audio
+g++ main.o -o main -LC:\SFML-2.6.1\lib -lsfml-graphics -lsfml-window -lsfml-system -lopengl32 -lwinmm -lgdi32 -lcomdlg32 -lsfml-audio
 
 **running executable**
 ./main.exe

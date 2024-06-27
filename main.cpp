@@ -28,7 +28,7 @@ int main()
     // Start the game loop
     while (window.isOpen())
     {
-        //ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
+        ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
         sf::Event event;// Process events
         while (window.pollEvent(event))
         {
@@ -41,7 +41,7 @@ int main()
             else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left){
                 if (myUploadButton.isClicked(window)){
                     sf::WindowHandle windowHandle = window.getSystemHandle();
-                    AudioFileHandling myAudioFile (windowHandle);
+                    AudioFileHandling myAudioFile (windowHandle); // Opens file directory in constructor
                 }
             }
 
