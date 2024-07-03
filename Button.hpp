@@ -16,6 +16,8 @@ protected:
     std::vector<ButtonMemberData> buttonMemberDataVect; 
 
 public:
+    bool clearButton = false;
+    
     Button() : windowDimension_(sf::Vector2f(0.0, 0.0)) {};
     Button(const sf::Vector2f& windowDimension) : windowDimension_(windowDimension) {
     };
@@ -51,6 +53,7 @@ public:
         else {
             return false;
         }
+        return false;
     };
 
     sf::Vector2f getWindowDimension(){
@@ -58,7 +61,7 @@ public:
     };
 
     // Explicit default destructor declaration to the compiler
-    virtual ~Button() = default; 
+    ~Button() = default; 
 
 private:
     const sf::Vector2f windowDimension_;
@@ -111,7 +114,7 @@ public:
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
         if (Button::isHovered(mousePosition)){
-            sf::Color color(210, 215, 211, 255); //Pumice Gray
+            sf::Color color(210, 215, 211); //Pumice Gray
             shape.setFillColor(color);
         }
         else{

@@ -8,5 +8,8 @@
 #include <iostream>
 #include <string>
 #include <iostream>
+#include <algorithm>
+#include <cctype>
 #include "Button.hpp"
 #include "AudioFileHandling.hpp"
+#include "ProgressBar.hpp"
