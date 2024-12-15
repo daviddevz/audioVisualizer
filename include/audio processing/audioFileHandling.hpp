@@ -1,15 +1,18 @@
-#pragma once
-#include "HeaderFiles.hpp"
+/* Win32 includes*/
+#include <windows.h>
+#include <commdlg.h>
+
+/* C++ includes*/
+#include <iostream>
+#include <string>
 
 class AudioFileHandling {
 public:
-    AudioFileHandling(const sf::WindowHandle windowHandle) {
-        openFileDir(windowHandle);
-        
-    };
+    char* filePath = new char[MAX_PATH];
+    AudioFileHandling(){};
 
     // Open file directory specific for Windows
-    void openFileDir(const sf::WindowHandle windowHandle) {
+    void openFileDir(const sf::WindowHandle windowHandle){
         OPENFILENAME ofn; // Common dialog box structure
         char szFile[MAX_PATH] = ""; // Buffer for file name how long it should be
         HWND hwnd = windowHandle; // Handle to window that owns dialog box
@@ -28,28 +31,22 @@ public:
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST; // Bit that sets what user can do upon initilizing dialog box
         
         // Display the Open dialog box based on configuration of ofn structure 
-        if (GetOpenFileName(&ofn)==TRUE) {
+        if(GetOpenFileName(&ofn)==TRUE) {
             // Create handle for the file that will be used for other operation
             hf = CreateFile(ofn.lpstrFile, GENERIC_READ, 0, (LPSECURITY_ATTRIBUTES) NULL, OPEN_EXISTING,
             FILE_ATTRIBUTE_NORMAL,(HANDLE) NULL);
             
-            filePath = ofn.lpstrFile; // Defines filePath
+            strcpy(filePath, ofn.lpstrFile); // Copy fn.lpstrFile to filePath
+            //filePath = ofn.lpstrFile; // Defines filePath
+            //std::cout<<"File Path "<<filePath<<std::endl;
             CloseHandle(hf); // Close handle to release system resources
         }
     }
 
-    // Returns 0 if it is a wave file and 1 if it is an mp3
-    // SFML can only read wav file so this function will tell us when a conversion is required
-    int checkAudioFileType() const{
-        if(getFileExtension(filePath) == ".mp3"){
-            return 1;
-        };
-        return 0;
-    }
-
     // Return file extension of the music file
-    std::string getFileExtension(const char* filePath) const{
-        if (filePath == nullptr) {
+    const std::string getFileExtension() const{
+        //std::cout<<"file path in getFileExtension() "<<filePath<<std::endl;
+        if(filePath == nullptr){
             return ""; // Handle null pointer case
         }
 
@@ -57,7 +54,7 @@ public:
         const char* dot_pos = strrchr(filePath, '.');
 
         // If no dot is found, return an empty string
-        if (dot_pos == nullptr) {
+        if(dot_pos == nullptr){
             return "";
         }
 
@@ -70,8 +67,7 @@ public:
     }
 
     // Explicit default destructor declaration to the compiler
-    ~AudioFileHandling() = default;
-
-private:
-    char* filePath;
+    ~AudioFileHandling(){
+        delete[] filePath;
+    }
 };

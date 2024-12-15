@@ -1,6 +1,7 @@
 #compile source
 .vscode/*
 makefile
+*.bat
 
 #executable
 *.exe
