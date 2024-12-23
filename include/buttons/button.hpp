@@ -1,12 +1,6 @@
-/* Win32 includes*/
-#include <windows.h>
-#include <commdlg.h>
-
-/* C++ includes*/
+#pragma once
 #include <iostream>
 #include <string>
-
-/* SFML includes */
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -25,11 +19,10 @@ protected:
     std::vector<ButtonMemberData> buttonMemberDataVect; 
 
 public:
-    bool clearButton = false;
+    //bool clearButton = false;
     
-    Button() : windowDimension_(sf::Vector2f(0.0, 0.0)) {};
-    Button(const sf::Vector2f& windowDimension) : windowDimension_(windowDimension) {
-    };
+    //Button() : windowDimension_(sf::Vector2f(0.0, 0.0)) {};
+    Button(){};
 
     // Add member data of each button to ButtonMemberData vector 
     void addButtonMemberData(const ButtonMemberData& buttonMemberData) {
@@ -52,6 +45,14 @@ public:
         return false;
     };
 
+    virtual void draw(sf::RenderTarget& target) const = 0;
+
+    virtual std::string getTextObjectString() const {
+        return "";
+    }
+
+    virtual void updateColor(sf::WindowBase& target) = 0;
+
     // Check if button was clicked
     virtual bool isClicked(const sf::WindowBase& target) const{
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
@@ -65,78 +66,13 @@ public:
         return false;
     };
 
-    sf::Vector2f getWindowDimension(){
-        return windowDimension_;
-    };
-
     // Explicit default destructor declaration to the compiler
-    ~Button() = default; 
+    virtual ~Button() = default; 
 
 private:
-    const sf::Vector2f windowDimension_;
 };
 
-class UploadButton : public Button{
-public:
-    UploadButton(sf::Vector2f uploadWindowDimension, const sf::Font& font,
-    const std::string& text, const sf::Vector2f& buttonDimension, unsigned int characterSize) :
-    Button(uploadWindowDimension), buttonDimension_(buttonDimension) {
-        //Button design
-        float centerX = Button::getWindowDimension().x / 2; // Window X center
-        float centerY = Button::getWindowDimension().y / 2; // Window Y center
 
-        shape.setSize(buttonDimension);
-
-        float setLeftPosX = centerX - buttonDimension_.x / 2; // Recangle X position offset
-        float setLeftPosY = centerY - buttonDimension_.y / 2; // Recangle Y position offset
-        shape.setPosition(setLeftPosX, setLeftPosY); // Set rectangle post
-
-        //Text design
-        textObject.setFont(font);
-        textObject.setString(text);
-        textObject.setCharacterSize(characterSize);
-        textObject.setFillColor(sf::Color::Black);
-        
-        float characterSizeFloat = static_cast<float>(characterSize);
-        float leftPosXAdjust = 50.0;
-        float setTextLeftPosY = setLeftPosY + (buttonDimension.y / 2 -  characterSizeFloat / 2);
-        float setTextLeftPosX = setLeftPosX + leftPosXAdjust;
-
-        textObject.setPosition(setTextLeftPosX, setTextLeftPosY);
-        textObject.setStyle(sf::Text::Bold);
-
-        // Stage member data of upload button and add button data to base class buttonDataVect
-        uploadButtonMemberData.posX = setLeftPosX;
-        uploadButtonMemberData.posY = setLeftPosY;
-        uploadButtonMemberData.width = buttonDimension_.x;
-        uploadButtonMemberData.height = buttonDimension_.y;
-        Button::addButtonMemberData(uploadButtonMemberData);
-    };
-
-    void draw(sf::RenderTarget& target) const {
-        target.draw(shape);
-        target.draw(textObject);
-    };
-    
-    
-    void updateColor(sf::WindowBase& target) {
-        const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
-
-        if (Button::isHovered(mousePosition)){
-            sf::Color color(210, 215, 211); //Pumice Gray
-            shape.setFillColor(color);
-        }
-        else{
-            shape.setFillColor(sf::Color::White); //Switch to white color
-        }
-    };
-
-private:
-    sf::Text textObject;
-    sf::RectangleShape shape;
-    const sf::Vector2f buttonDimension_;
-    Button::ButtonMemberData uploadButtonMemberData;
-};
 
 class PlayButton : public Button{
 
