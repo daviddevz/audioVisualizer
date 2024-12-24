@@ -89,6 +89,13 @@ public:
         else{
             loadScene(sceneId, window);
         }
+
+        // If no music file is selected, go back to upload scene
+        if (lastSceneId == "process audio" && filePath.empty()){
+            delete scenes["upload music"];
+            scenes["upload music"] = SceneRegistry::getScene("upload music");
+            loadScene("upload music", window);
+        }
     }
 
     bool shouldMoveToNextScene(){

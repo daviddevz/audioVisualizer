@@ -1,14 +1,9 @@
-/* Win32 includes*/
 #include <windows.h>
 #include <commdlg.h>
-
-/* C++ includes*/
 #include <iostream>
 #include <string>
-
-/* SFML includes */
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
+#include "SFML/Window.hpp"
+#include "SFML/Graphics.hpp"
 
 class ProgressBar {
 public:

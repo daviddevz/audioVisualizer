@@ -23,7 +23,36 @@ ProgressBar AudioVisualizer::loadProgressBar(){
 void AudioVisualizer::startAudioVisualizer(){
     loadWindow();
 
-    // Crete instance of SceneManager
+    sf::Font font;
+    if(!font.loadFromFile("C:\\SFML-2.6.1\\Arial Font\\ARIAL.TTF")){
+            throw std::runtime_error("Failed to load font");
+    }
+
+    const sf::Vector2f windowDimension = {2000.0f, 1000.0f};
+    PlayPause playPauseButton(windowDimension, font);
+    playPauseButton.buttonType = 0;
+    
+    sf::Event event;
+    while (window.isOpen()){
+        while (window.pollEvent(event)){
+            if (event.type == sf::Event::Closed){ // Close window: exit
+                window.close();
+            }
+
+            if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left){
+                playPauseButton.isClicked(window);
+            }
+        }
+        window.clear(sf::Color::Black);
+        
+        playPauseButton.draw(window);
+        
+        window.display();
+    }
+}
+
+
+    /* // Crete instance of SceneManager
     SceneManager sceneManager;
 
     // Create upload music scene
@@ -43,12 +72,12 @@ void AudioVisualizer::startAudioVisualizer(){
             }
 
             // Mouse click actions 
-            else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left){
+            if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left){
                 sceneManager.clickActions(window);
             }
 
             // Mouse hover actions
-            else if (event.type == sf::Event::MouseMoved){
+            if (event.type == sf::Event::MouseMoved){
                 //uploadButton.updateColor(window); //update button color if mouse hover over button
                 sceneManager.cursorActions(window);
             }
@@ -71,12 +100,13 @@ void AudioVisualizer::startAudioVisualizer(){
             progressBar.updateProgressBar(2, "Processing ...");
             progressBar.draw(window);
         } */
-        if (sceneManager.shouldMoveToNextScene() == true){
+        /* if (sceneManager.shouldMoveToNextScene() == true){
             sceneId = sceneManager.getNextSceneId();
             sceneManager.loadNextScene(sceneId, window);
         }
 
         window.display(); // Update the window
-    }
-}
+    } */
+/* }
 
+ */

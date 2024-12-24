@@ -8,8 +8,10 @@
 #include "SFML/Audio/Sound.hpp"
 #include "SFML/Audio/SoundBuffer.hpp"
 #include "SFML/Graphics.hpp"
-#include "shapes/progressBar.hpp"
+#include "visualization/progressBar.hpp"
 #include "scene/sceneManager.hpp"
+
+#include "buttons/play_pause.hpp"
 
 
 class AudioVisualizer{

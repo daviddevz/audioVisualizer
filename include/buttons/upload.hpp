@@ -6,15 +6,14 @@
 class UploadButton : public Button{
 public:
     UploadButton(sf::Vector2f windowDimension, const sf::Font& font,
-    const std::string& text, const sf::Vector2f& buttonDimension, unsigned int characterSize):
-    buttonDimension_(buttonDimension) {
+    const std::string& text, const sf::Vector2f& buttonDimension, unsigned int characterSize){
         //Button design
-        float centerX = (windowDimension.x / 2) - (buttonDimension_.x / 2); // button X center
-        float centerY = (windowDimension.y / 2) - (buttonDimension_.y / 2); // button Y center
+        float xPos = (windowDimension.x / 2) - (buttonDimension.x / 2); // button X center
+        float yPos = (windowDimension.y / 2) - (buttonDimension.y / 2); // button Y center
 
         shape.setSize(buttonDimension);
         
-        shape.setPosition(centerX, centerY); // Set rectangle position
+        shape.setPosition(xPos, yPos); // Set rectangle position
 
         //Text design
         textObject.setFont(font);
@@ -24,18 +23,17 @@ public:
         
         float characterSizeFloat = static_cast<float>(characterSize);
         float leftPosXAdjust = 50.0;
-        float setTextLeftPosY = centerY + (buttonDimension.y / 2 -  characterSizeFloat / 2);
-        float setTextLeftPosX = centerX + leftPosXAdjust;
+        float setTextLeftPosY = yPos + (buttonDimension.y / 2 -  characterSizeFloat / 2);
+        float setTextLeftPosX = xPos + leftPosXAdjust;
 
         textObject.setPosition(setTextLeftPosX, setTextLeftPosY);
         textObject.setStyle(sf::Text::Bold);
 
-        // Stage member data of upload button and add button data to base class buttonDataVect
-        uploadButtonMemberData.posX = centerX;
-        uploadButtonMemberData.posY = centerY;
-        uploadButtonMemberData.width = buttonDimension_.x;
-        uploadButtonMemberData.height = buttonDimension_.y;
-        Button::addButtonMemberData(uploadButtonMemberData);
+        buttonMemberData.posX = xPos;
+        buttonMemberData.posY = yPos;
+        buttonMemberData.width = buttonDimension.x;
+        buttonMemberData.height = buttonDimension.y;
+        addButtonMemberData(buttonMemberData);
     };
 
     void draw(sf::RenderTarget& target) const override {
@@ -47,7 +45,7 @@ public:
     void updateColor(sf::WindowBase& target) override {
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
-        if (Button::isHovered(mousePosition)){
+        if (isHovered(mousePosition)){
             sf::Color color(210, 215, 211); //Pumice Gray
             shape.setFillColor(color);
         }
@@ -60,10 +58,10 @@ public:
         return textObject.getString();
     }
 
+    ~UploadButton(){}
 
 private:
     sf::Text textObject;
     sf::RectangleShape shape;
-    const sf::Vector2f buttonDimension_;
-    Button::ButtonMemberData uploadButtonMemberData;
+    ButtonMemberData buttonMemberData;
 };
