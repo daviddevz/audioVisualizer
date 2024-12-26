@@ -7,11 +7,10 @@
 #include <vector>
 #include "sceneRegistry.hpp"
 
-//template <typename Scene>
 class SceneManager{
 private:
     std::unordered_map<std::string, Scene*> scenes;
-    std::vector<std::string> sceneIds = {"upload music", "process audio", "visualization"};
+    std::vector<std::string> sceneIds = {"upload music", "visualization"};
     Scene* currentScene;
     std::string lastSceneId;
     std::string filePath;
@@ -27,7 +26,7 @@ public:
         }
     }
 
-    void loadScene(const std::string& sceneId, sf::WindowBase& window){
+    void loadScene(const std::string& sceneId, sf::RenderWindow& window){
         currentScene = scenes[sceneId];
         lastSceneId = sceneId;
 
@@ -41,6 +40,10 @@ public:
         if (sceneId == "process audio"){
             filePath = scenes["upload music"] -> getFilePath();
             scenes["process audio"] -> setFilePath(filePath);
+        }
+        else if (sceneId == "visualization"){
+            filePath = scenes["upload music"] -> getFilePath();
+            scenes["visualization"] -> setFilePath(filePath);
         }
     }
 
@@ -64,19 +67,19 @@ public:
         return sf::Color::Black;
     }
 
-    void clickActions(sf::WindowBase& window){
+    void clickActions(sf::RenderWindow& window){
         if (currentScene != nullptr){
             currentScene -> clickActions(window);
         }
     }
 
-    void cursorActions(sf::WindowBase& window){
+    void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target){
         if (currentScene != nullptr){
-            currentScene -> cursorActions(window);
+            currentScene -> cursorActions(window, target);
         }
     }
 
-    void loadNextScene(std::string& sceneId, sf::WindowBase& window){
+    void loadNextScene(std::string& sceneId, sf::RenderWindow& window){
         
         // If scene is empty load the next scene
         if (sceneId.empty()){

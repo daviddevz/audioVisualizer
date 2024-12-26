@@ -42,7 +42,7 @@ public:
     };
     
     
-    void updateColor(sf::WindowBase& target) override {
+    void updateColor(sf::RenderWindow& target) override {
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
         if (isHovered(mousePosition)){

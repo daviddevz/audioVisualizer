@@ -10,9 +10,14 @@ class PlayPause : public Button{
 public:
     int buttonType = 0;
     PlayPause(const sf::Vector2f windowDimension, const sf::Font& font)
-    :windowDimension_(windowDimension), font_(font){
+    :windowDimension_(windowDimension), font_(font) {
         createPlay();
         createPause();
+
+        //Text design
+        description.setFont(font_);
+        description.setCharacterSize(25);
+        description.setFillColor(sf::Color::White);
     }
 
     void createPlay(){
@@ -154,25 +159,52 @@ public:
             target.draw(triangle2);
             target.draw(triangle3);
         }
-        
     }
 
-    void updateColor(sf::WindowBase& window) override{}
-
-    // Show pause or play when you hover buttons
-    void hoverText(sf::WindowBase& window){
+    void updateColor(sf::RenderWindow& window) override{
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
 
-        for (const auto& button : buttonMap){
-            addButtonMemberData(button.second);
-
-            if (isHovered(mousePosition)){
-
+        if (isHovered(mousePosition)){
+            if(buttonType == 0){
+                circle.setFillColor(sf::Color(210, 215, 211, 100));
             }
+            else{
+                circle2.setFillColor(sf::Color(210, 215, 211, 100));
+                triangle2.setFillColor(sf::Color(210, 215, 211, 100));
+                triangle3.setFillColor(sf::Color(210, 215, 211, 100));
+            }
+        }
+        else{
+            circle.setFillColor(sf::Color(sf::Color::Black)); 
+            circle2.setFillColor(sf::Color(sf::Color::Black));
+            triangle2.setFillColor(sf::Color(sf::Color::White));
+            triangle3.setFillColor(sf::Color(sf::Color::White));
         }
     }
 
-    virtual bool isClicked(const sf::WindowBase& target) override{
+    /* To Do: figure out why the hover text won't show*/
+    // Show pause or play when you hover buttons
+    void hoverText(sf::RenderWindow& window, sf::RenderTarget& target){
+        const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+        float xPos = (windowDimension_.x / 2) - (buttonDimension.x / 2);
+        float yPos = (windowDimension_.y) - (buttonDimension.y * 7);
+
+        if (isHovered(mousePosition)){
+            if(buttonType == 0){
+                description.setString("Play");
+                description.setPosition(xPos, yPos);
+                target.draw(description);
+            }
+            else{
+                description.setString("Pause");
+                description.setPosition(xPos, yPos);
+                target.draw(description);
+            }
+
+        }
+    }
+
+    bool isClicked(const sf::RenderWindow& target) override{
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target);
 
         for (const auto& button : buttonMap){
@@ -180,11 +212,9 @@ public:
 
             if (isHovered(mousePosition)) {
                 if(buttonType == 0){
-                    std::cout << "Pause ..."<< std::endl;
                     buttonType = 1;
                 }
                 else{
-                    std::cout << "Play ..."<< std::endl;
                     buttonType = 0;
                 }               
                 return true;
@@ -195,9 +225,8 @@ public:
 
     ~PlayPause(){}
 private:
-    sf::Font font_;
     sf::Text description;
-    sf::RectangleShape rectangle;
+    sf::Font font_;
     sf::CircleShape circle, circle2;
     sf::ConvexShape triangle, triangle2, triangle3;
     sf::Vector2f buttonDimension = {30.0f, 30.0f};

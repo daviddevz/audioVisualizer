@@ -40,9 +40,9 @@ public:
         return "";
     }
 
-    virtual void updateColor(sf::WindowBase& target) = 0;
+    virtual void updateColor(sf::RenderWindow& target) = 0;
 
-    virtual bool isClicked(const sf::WindowBase& target) {
+    virtual bool isClicked(const sf::RenderWindow& target) {
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
         if (isHovered(mousePosition)) {

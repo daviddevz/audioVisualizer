@@ -2,7 +2,6 @@
 // Scene to upload music
 
 #pragma once
-#include "SFML/Window.hpp"
 #include "buttons/upload.hpp"
 #include "scene/scene.hpp"
 #include "audio processing/audioFileHandling.hpp"
@@ -12,30 +11,10 @@ public:
     UploadMusic(){};
 
     UploadButton* button;
-    bool scenActionComplete = false;
-
-    // Actions perfromed when specific scene object is clicked
-    void clickActions(sf::WindowBase& window) override{
-        if (button -> isClicked(window) && button -> getTextObjectString() == uploadButtTxt){
-            sf::WindowHandle windowHandle = window.getSystemHandle();
-            AudioFileHandling audioPath;
-            audioPath.openFileDir(windowHandle); // Opens file directory
-            filePath = audioPath.filePath.get();
-            scenActionComplete = true;
-        }
-    }
-
-    // Actions perfromed when specific scene object is hovered
-    void cursorActions(sf::WindowBase& window) override{
-        if (button -> getTextObjectString() == uploadButtTxt){
-            button -> updateColor(window);
-        }
-    }
-
-    // UploadButton loadUploadButton();
+    //bool scenActionComplete = false;
 
     // Set all the scene object ready to be drawn
-    void load(sf::WindowBase& window) override{
+    void load(sf::RenderWindow& window) override{
         
         winDim = {window.getSize().x , window.getSize().y};
         buttWindDim = {static_cast<float>(winDim.width), static_cast<float>(winDim.height)};
@@ -53,9 +32,26 @@ public:
         button -> draw(window);
     };
 
+    // Actions perfromed when specific scene object is clicked
+    void clickActions(sf::RenderWindow& window) override{
+        if (button -> isClicked(window) && button -> getTextObjectString() == uploadButtTxt){
+            sf::WindowHandle windowHandle = window.getSystemHandle();
+            AudioFileHandling audioPath;
+            audioPath.openFileDir(windowHandle); // Opens file directory
+            filePath = audioPath.filePath.get();
+        }
+    }
+
+    // Actions perfromed when specific scene object is hovered
+    void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override{
+        if (button -> getTextObjectString() == uploadButtTxt){
+            button -> updateColor(window);
+        }
+    }
+
     // boolean function that ensures when to move to next scene
     bool shouldMoveToNextScene() override{
-        if (scenActionComplete == true){
+        if (filePath.empty() == false){
             return true;
         }
         return false;
@@ -63,7 +59,7 @@ public:
 
     // Next scene to move to
     std::string getNextSceneId() override{
-        return "process audio";
+        return "visualization";
     }
 
     const std::string getFilePath() override{

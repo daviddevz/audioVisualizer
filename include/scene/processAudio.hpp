@@ -2,37 +2,40 @@
 // Scene to process music
 
 #pragma once
-#include "SFML/Window.hpp"
 #include "scene/scene.hpp"
+#include "visualization/progressBar.hpp"
 
 class ProcessAudio : public Scene{
 public:
+    ProgressBar* progressBar;
+
     ProcessAudio(){};
 
-    void clickActions(sf::WindowBase& window){
+    void load(sf::RenderWindow& window) override{
 
     };
-    void cursorActions(sf::WindowBase& window){
+    void render(sf::RenderWindow& window) override{
 
     };
-    void load(sf::WindowBase& window){
+    void clickActions(sf::RenderWindow& window) override{
 
     };
-    void render(sf::RenderWindow& window){
+    void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override{
 
     };
-    bool shouldMoveToNextScene(){
-
+    
+    bool shouldMoveToNextScene() override{
+        return true;
     };
 
     void setFilePath(const std::string& filePath_) override {
         filePath = filePath_;
-        //std::cout <<"Process Audio " << filePath << std::endl;
     }
 
-    ~ProcessAudio(){};
+    ~ProcessAudio(){
+        delete progressBar;
+    };
 
 private:
     std::string filePath;
-
 };

@@ -18,14 +18,14 @@ public:
             UploadMusic* uploadMusic = new UploadMusic();
             return uploadMusic;
         }
-        else if (sceneId == "process audio"){
+        /* else if (sceneId == "process audio"){
             ProcessAudio* processAudio = new ProcessAudio();
             return processAudio;
-        }
-        /*else if (sceneId == "visualization"){
-            Vizualization* visualization = new Vizualization();
-            return visualization;
         } */
+        else if (sceneId == "visualization"){
+            Visualization* visualization = new Visualization();
+            return visualization;
+        }
         return nullptr;
     }
 
