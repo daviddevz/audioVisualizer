@@ -8,7 +8,6 @@
 
 class SkipForwardBackward : public Button{
 public:
-    int buttonType = 0;
     SkipForwardBackward(const sf::Vector2f windowDimension, const sf::Font& font)
     :windowDimension_(windowDimension){
         createSkipForward();
@@ -62,7 +61,7 @@ public:
         rectangle1.move(0.35f * radius, -0.55f * radius * sinf(M_PI/3.0f));
 
         buttonMemberData = {xPos + SHIFT, yPos, radius * 2.0f, radius * 2.0f};
-        buttonMap[0] = buttonMemberData;
+        buttonMap[1] = buttonMemberData;
     }
 
     void createSkipBack(){
@@ -107,7 +106,7 @@ public:
         rectangle2.move(-0.55f * radius, -0.55f * radius * sinf(M_PI/3.0f));
 
         buttonMemberData = {xPos - SHIFT, yPos, radius * 2.0f, radius * 2.0f};
-        buttonMap[1] = buttonMemberData;
+        buttonMap[0] = buttonMemberData;
     }
 
     void draw(sf::RenderTarget& target) const override{
@@ -127,18 +126,23 @@ public:
 
         for (const auto& button : buttonMap){
             addButtonMemberData(button.second);
-
+            std::cout<<"isHovered "<<isHovered(mousePosition) <<" button " <<button.first <<" \n";
             if (isHovered(mousePosition)){
-                if(buttonType == 0){
-                    circle1.setFillColor(sf::Color(210, 215, 211, 100));
-                }
-                else if (buttonType == 1) {
+                if (button.first == 0) {
                     circle2.setFillColor(sf::Color(210, 215, 211, 100));
+                    triangle2.setFillColor(sf::Color(210, 215, 211, 100));
+                    rectangle2.setFillColor(sf::Color(210, 215, 211, 100));
+                    std::cout<<"Hovering button 0\n";
+                }
+                else if(button.first == 1){
+                    circle1.setFillColor(sf::Color(210, 215, 211, 100));
                 }
             }
             else{
                 circle1.setFillColor(sf::Color(sf::Color::Black)); 
                 circle2.setFillColor(sf::Color(sf::Color::Black));
+                triangle2.setFillColor(sf::Color::White);
+                rectangle2.setFillColor(sf::Color::White);
             }
         }
     }
@@ -149,18 +153,22 @@ public:
         float xPos = (windowDimension_.x / 2) - (buttonDimension.x / 2);
         float yPos = (windowDimension_.y) - (buttonDimension.y * 7);
 
-        if (isHovered(mousePosition)){
-            if(buttonType == 0){
-                description.setString("Play");
-                description.setPosition(xPos, yPos);
-                target.draw(description);
-            }
-            else{
-                description.setString("Pause");
-                description.setPosition(xPos, yPos);
-                target.draw(description);
-            }
+        for (const auto& button : buttonMap){
+            addButtonMemberData(button.second);
 
+            if (isHovered(mousePosition)){
+                if(button.first == 0){
+                    description.setString("Skip Backward");
+                    description.setPosition(xPos - SHIFT, yPos);
+                    target.draw(description);
+                }
+                else if (button.first == 1) {
+                    description.setString("Skip Forward");
+                    description.setPosition(xPos + SHIFT, yPos);
+                    target.draw(description);
+                }
+
+            }
         }
     }
 
@@ -172,15 +180,17 @@ public:
             addButtonMemberData(button.second);
 
             if (isHovered(mousePosition)) {
-                if(buttonType == 0) {
+                if(button.first == 0) {
+                    std::cout <<"skip backward\n";
                     skipForwardIsClicked = false;
                 }
-                else if (buttonType == 1){
+                else if (button.first == 1){
+                    std::cout <<"skip forward\n";
                     skipForwardIsClicked = true;
                 }
             }
         }
-        return skipForwardIsClicked; // true if skip forward is clicked
+        return skipForwardIsClicked;
     }
 
     ~SkipForwardBackward(){}

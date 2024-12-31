@@ -48,19 +48,18 @@ public:
             music.pause();
         }
 
-        //To Do: Fix Skip Forward and Skip Backward Button
         if (musicPlayer -> isSkipForward() == true){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                std::cout<<"Skip Foward ...\n";
                 sf::Time timeOffset = sf::seconds(2.0f);
                 music.setPlayingOffset(timeOffset);
+                std::cout<<"skip forward triggered \n";
             }
         }
         else if (musicPlayer -> isSkipForward() == false){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                std::cout<<"Skip Backward ...\n";
                 sf::Time timeOffset = sf::seconds(1.0f);
                 music.setPlayingOffset(timeOffset);
+                std::cout<<"skip backward triggered \n";
             }
         }
     };
