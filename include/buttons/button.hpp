@@ -1,8 +1,9 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
+#include "SFML/Window.hpp"
+#include "SFML/Graphics.hpp"
+#include "visualization/renderText.hpp"
 
 
 // A struct to store member data of button object 

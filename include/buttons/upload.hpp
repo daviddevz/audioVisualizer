@@ -15,16 +15,23 @@ public:
         
         shape.setPosition(xPos, yPos); // Set rectangle position
 
+        float characterSizeFloat = static_cast<float>(characterSize);
+        float leftPosXAdjust = 50.0;
+        float setTextLeftPosY = yPos + (buttonDimension.y / 2 -  characterSizeFloat / 2);
+        float setTextLeftPosX = xPos + leftPosXAdjust;
+
         //Text design
+        sf::Color textColor = sf::Color::Black;
+        RenderText textObj(font, text, textColor,
+        sf::Vector2f(setTextLeftPosX, setTextLeftPosY), characterSize);
+        renderText = textObj;
+
         textObject.setFont(font);
         textObject.setString(text);
         textObject.setCharacterSize(characterSize);
         textObject.setFillColor(sf::Color::Black);
         
-        float characterSizeFloat = static_cast<float>(characterSize);
-        float leftPosXAdjust = 50.0;
-        float setTextLeftPosY = yPos + (buttonDimension.y / 2 -  characterSizeFloat / 2);
-        float setTextLeftPosX = xPos + leftPosXAdjust;
+        
 
         textObject.setPosition(setTextLeftPosX, setTextLeftPosY);
         textObject.setStyle(sf::Text::Bold);
@@ -34,11 +41,14 @@ public:
         buttonMemberData.width = buttonDimension.x;
         buttonMemberData.height = buttonDimension.y;
         addButtonMemberData(buttonMemberData);
+
+        strPtr = &text;
     };
 
     void draw(sf::RenderTarget& target) const override {
         target.draw(shape);
-        target.draw(textObject);
+        //target.draw(textObject);
+        renderText.draw(target);
     };
     
     
@@ -55,13 +65,15 @@ public:
     };
 
     std::string getTextObjectString() const override{
-        return textObject.getString();
+        return *strPtr;
     }
 
     ~UploadButton(){}
 
 private:
     sf::Text textObject;
+    RenderText renderText;
+    const std::string* strPtr;
     sf::RectangleShape shape;
     ButtonMemberData buttonMemberData;
 };

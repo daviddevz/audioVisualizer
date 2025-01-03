@@ -10,6 +10,7 @@
 
 class Visualization : public Scene {
 public:
+    bool isPaused = false;
     MusicPlayer* musicPlayer;
     WaveAnimation* waveAnimation;
     Visualization(){};
@@ -28,8 +29,14 @@ public:
 
     void render(sf::RenderWindow& window) override{
         musicPlayer -> render(window);
+
         if (music.getStatus() == sf::Music::Stopped){
             musicPlayer -> musicEndAction();
+            currentMusicDuration = sf::Time::Zero;
+        }
+
+        if (music.getStatus() == sf::Music::Playing && !isPaused){
+            currentMusicDuration += clock.restart();
         }
     };
 
@@ -39,41 +46,54 @@ public:
         
         if (musicPlayer -> isMusicPaused() == false){
             if (music.getStatus() != sf::Music::Playing){
-                std::cout<<"Play Music...\n";
                 music.play();
+                
+                if (isPaused) {
+                    music.setPlayingOffset(currentMusicDuration); 
+                }
+                clock.restart();
+                isPaused = false;
             }
         }
         else{
-            std::cout<<"Pause Music...\n";
             music.pause();
+            isPaused = true;
+            
         }
 
-        if (musicPlayer -> isSkipForward() == true){
+        if (musicPlayer -> isSkipForward()){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                sf::Time timeOffset = sf::seconds(2.0f);
-                music.setPlayingOffset(timeOffset);
-                std::cout<<"skip forward triggered \n";
+                sf::Time timeOffset = sf::seconds(30.0f);
+                currentMusicDuration += ((currentMusicDuration + timeOffset) >= music.getDuration())
+                                        ? music.getDuration() : timeOffset;
+                music.setPlayingOffset(currentMusicDuration); 
+
+                musicPlayer -> resetSkipForward();
             }
         }
-        else if (musicPlayer -> isSkipForward() == false){
+        
+        if (musicPlayer -> isSkipBackward() == true){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                sf::Time timeOffset = sf::seconds(1.0f);
-                music.setPlayingOffset(timeOffset);
-                std::cout<<"skip backward triggered \n";
+                sf::Time timeOffset = sf::seconds(10.0f);
+                currentMusicDuration -= ((currentMusicDuration + timeOffset) <= sf::Time::Zero)
+                                        ? sf::Time::Zero : timeOffset;
+                music.setPlayingOffset(currentMusicDuration);
+
+                musicPlayer -> resetSkipBackward();
             }
         }
-    };
+    }
 
     void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override{
         musicPlayer -> cursorActions(window, target);
-    };
+    }
 
     bool shouldMoveToNextScene() override{
         /* if(music.getStatus() == sf::Music::Stopped){
             return true;
         } */
         return false;
-    };
+    }
 
     std::string getNextSceneId() override{
         return "";
@@ -104,6 +124,8 @@ private:
     sf::Font font;
     std::string filePath_;
     sf::Music music;
+    sf::Time currentMusicDuration = sf::Time::Zero;
+    sf::Clock clock;
     const std::vector<std::vector<std::complex<double>>> stftData_; 
     const int videoFps = 30; 
     // ... other private members (e.g., for storing visualization data, rendering)

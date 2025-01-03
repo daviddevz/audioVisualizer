@@ -182,8 +182,7 @@ public:
         }
     }
 
-    /* To Do: figure out why the hover text won't show*/
-    // Show pause or play when you hover buttons
+    
     void hoverText(sf::RenderWindow& window, sf::RenderTarget& target){
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
         float xPos = (windowDimension_.x / 2) - (buttonDimension.x / 2);
