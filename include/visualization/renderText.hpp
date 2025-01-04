@@ -19,6 +19,15 @@ public:
     void draw(sf::RenderTarget& target) const {
         target.draw(text);
     }
+
+    void setStr(std::string& str){
+        text.setString(str);
+    }
+
+    void setPosition(sf::Vector2f& position){
+        text.setPosition(position);
+    }
+    
 private:
     sf::Text text;
 };

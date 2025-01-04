@@ -22,19 +22,9 @@ public:
 
         //Text design
         sf::Color textColor = sf::Color::Black;
-        RenderText textObj(font, text, textColor,
+        renderText = RenderText(font, text, textColor,
         sf::Vector2f(setTextLeftPosX, setTextLeftPosY), characterSize);
-        renderText = textObj;
 
-        textObject.setFont(font);
-        textObject.setString(text);
-        textObject.setCharacterSize(characterSize);
-        textObject.setFillColor(sf::Color::Black);
-        
-        
-
-        textObject.setPosition(setTextLeftPosX, setTextLeftPosY);
-        textObject.setStyle(sf::Text::Bold);
 
         buttonMemberData.posX = xPos;
         buttonMemberData.posY = yPos;
@@ -47,7 +37,6 @@ public:
 
     void draw(sf::RenderTarget& target) const override {
         target.draw(shape);
-        //target.draw(textObject);
         renderText.draw(target);
     };
     
@@ -56,11 +45,11 @@ public:
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target); //Relative to current window
 
         if (isHovered(mousePosition)){
-            sf::Color color(210, 215, 211); //Pumice Gray
+            sf::Color color(210, 215, 211);
             shape.setFillColor(color);
         }
         else{
-            shape.setFillColor(sf::Color::White); //Switch to white color
+            shape.setFillColor(sf::Color::White);
         }
     };
 
@@ -68,10 +57,9 @@ public:
         return *strPtr;
     }
 
-    ~UploadButton(){}
+    ~UploadButton() = default;
 
 private:
-    sf::Text textObject;
     RenderText renderText;
     const std::string* strPtr;
     sf::RectangleShape shape;

@@ -3,6 +3,7 @@
 #include "buttons/playPause.hpp"
 #include "buttons/skipForward.hpp"
 #include "buttons/skipBackward.hpp"
+#include "musicDurationBar.hpp"
 
 class MusicPlayer{
 private:
@@ -13,11 +14,13 @@ public:
     PlayPause* playPauseButton;
     SkipForward* skipForwardButton;
     SkipBackward* skipBackwardButton;
+    MusicDuration* musicDurationBar;
     
     MusicPlayer(const sf::Vector2f windowDimension, const sf::Font& font){
         playPauseButton = new PlayPause(windowDimension, font);
         skipForwardButton = new SkipForward(windowDimension, font);
         skipBackwardButton = new SkipBackward(windowDimension, font);
+        musicDurationBar = new MusicDuration(windowDimension, font);
     };
 
     void clickActions(sf::RenderWindow& window){
@@ -36,11 +39,8 @@ public:
     }
 
     void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target){
-        playPauseButton -> hoverText(window, target);
         playPauseButton -> updateColor(window);
-        skipForwardButton -> hoverText(window, target);
         skipForwardButton -> updateColor(window);
-        skipBackwardButton -> hoverText(window, target);
         skipBackwardButton -> updateColor(window);
     }
 
@@ -48,6 +48,8 @@ public:
         playPauseButton -> draw(window);
         skipForwardButton -> draw(window);
         skipBackwardButton -> draw(window);
+        musicDurationBar -> draw(window);
+        musicDurationBar -> renderTimer(window);
     }
 
     bool isMusicPaused(){
@@ -78,9 +80,14 @@ public:
         playMusic = false;
     }
 
+    void getMusicDuration(sf::Time& currDuration, sf::Time& totalDuration){
+        musicDurationBar -> setMusicDuration(currDuration, totalDuration);
+    }
+
     ~MusicPlayer(){
         delete playPauseButton;
         delete skipForwardButton;
         delete skipBackwardButton;
+        delete musicDurationBar;
     };
 };

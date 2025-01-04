@@ -18,7 +18,6 @@ public:
 
 private:
     unsigned int windowWidth = 2000, windowHeight = 1000;
-    float buttonWidth = 500, buttonHeight = 100, loadingStages = 5;
     std::string windowTitle = "Audio Visualizer", sceneId;
     sf::RenderWindow window;
 };

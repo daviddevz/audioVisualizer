@@ -82,31 +82,6 @@ public:
         }
     }
 
-    // Show pause or play when you hover buttons
-    void hoverText(sf::RenderWindow& window, sf::RenderTarget& target){
-        /* const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-        float xPos = (windowDimension_.x / 2) - (buttonDimension.x / 2);
-        float yPos = (windowDimension_.y) - (buttonDimension.y * 7);
-
-        for (const auto& button : buttonMap){
-            addButtonMemberData(button.second);
-
-            if (isHovered(mousePosition)){
-                if(button.first == 0){
-                    description.setString("Skip Backward");
-                    description.setPosition(xPos - SHIFT, yPos);
-                    target.draw(description);
-                }
-                else if (button.first == 1) {
-                    description.setString("Skip Forward");
-                    description.setPosition(xPos + SHIFT, yPos);
-                    target.draw(description);
-                }
-
-            }
-        } */
-    }
-
     bool isClicked(const sf::RenderWindow& target) override{
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(target);
 
@@ -118,7 +93,8 @@ public:
         return false;
     }
 
-    ~SkipForward(){}
+    ~SkipForward() = default;
+    
 private:
     const float SHIFT = 100.0f;
     //sf::Text description;

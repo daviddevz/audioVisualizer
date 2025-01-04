@@ -13,11 +13,6 @@ public:
     :windowDimension_(windowDimension), font_(font) {
         createPlay();
         createPause();
-
-        //Text design
-        description.setFont(font_);
-        description.setCharacterSize(25);
-        description.setFillColor(sf::Color::White);
     }
 
     void createPlay(){
@@ -167,6 +162,7 @@ public:
         if (isHovered(mousePosition)){
             if(buttonType == 0){
                 circle.setFillColor(sf::Color(210, 215, 211, 100));
+                
             }
             else{
                 circle2.setFillColor(sf::Color(210, 215, 211, 100));
@@ -179,27 +175,6 @@ public:
             circle2.setFillColor(sf::Color(sf::Color::Black));
             triangle2.setFillColor(sf::Color(sf::Color::White));
             triangle3.setFillColor(sf::Color(sf::Color::White));
-        }
-    }
-
-    
-    void hoverText(sf::RenderWindow& window, sf::RenderTarget& target){
-        const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-        float xPos = (windowDimension_.x / 2) - (buttonDimension.x / 2);
-        float yPos = (windowDimension_.y) - (buttonDimension.y * 7);
-
-        if (isHovered(mousePosition)){
-            if(buttonType == 0){
-                description.setString("Play");
-                description.setPosition(xPos, yPos);
-                target.draw(description);
-            }
-            else{
-                description.setString("Pause");
-                description.setPosition(xPos, yPos);
-                target.draw(description);
-            }
-
         }
     }
 
@@ -222,9 +197,8 @@ public:
         return false;
     }
 
-    ~PlayPause(){}
+    ~PlayPause() = default;
 private:
-    sf::Text description;
     sf::Font font_;
     sf::CircleShape circle, circle2;
     sf::ConvexShape triangle, triangle2, triangle3;

@@ -26,13 +26,10 @@ public:
     /* Iterate over struct vector and check if the current mouse position is within
     the button dimension. Returns true if user hovers over button else false*/
     bool isHovered(const sf::Vector2i& mousePosition) const {
-        if ((mousePosition.x >= static_cast<int>(buttonMemberData.posX) && mousePosition.x <=
-        (static_cast<int>(buttonMemberData.posX) + static_cast<int>(buttonMemberData.width))) &&
-        (mousePosition.y >= static_cast<int>(buttonMemberData.posY) && mousePosition.y <=
-        (static_cast<int>(buttonMemberData.posY) + static_cast<int>(buttonMemberData.height)))) {
-            return true;
-        }
-        return false;
+        return (mousePosition.x >= static_cast<int>(buttonMemberData.posX)) &&
+                (mousePosition.x <= static_cast<int>(buttonMemberData.posX) + static_cast<int>(buttonMemberData.width)) &&
+                (mousePosition.y >= static_cast<int>(buttonMemberData.posY)) &&
+                (mousePosition.y <= static_cast<int>(buttonMemberData.posY) + static_cast<int>(buttonMemberData.height));
     };
 
     virtual void draw(sf::RenderTarget& target) const = 0;
