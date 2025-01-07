@@ -1,6 +1,3 @@
-// Written by David I. 2024
-// Scene to upload music
-
 #pragma once
 #include "buttons/upload.hpp"
 #include "scene/scene.hpp"
@@ -8,7 +5,7 @@
 
 class UploadMusic : public Scene{
 public:
-    UploadMusic(){};
+    UploadMusic() = default;
 
     UploadButton* button;
     //bool scenActionComplete = false;

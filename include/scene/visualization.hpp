@@ -38,6 +38,8 @@ public:
         if (music.getStatus() == sf::Music::Playing && !isPaused){
             currentMusicDuration += clock.restart();
         }
+        
+        musicPlayer -> getMusicDuration(currentMusicDuration, music.getDuration());
     };
 
     void clickActions(sf::RenderWindow& window) override{
@@ -64,10 +66,14 @@ public:
         if (musicPlayer -> isSkipForward()){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
                 sf::Time timeOffset = sf::seconds(30.0f);
-                currentMusicDuration += ((currentMusicDuration + timeOffset) >= music.getDuration())
-                                        ? music.getDuration() : timeOffset;
-                music.setPlayingOffset(currentMusicDuration); 
 
+                if ((currentMusicDuration + timeOffset) > music.getDuration()){
+                    currentMusicDuration = music.getDuration();
+                }
+                else{
+                    currentMusicDuration += timeOffset;
+                }
+                music.setPlayingOffset(currentMusicDuration); 
                 musicPlayer -> resetSkipForward();
             }
         }
@@ -75,10 +81,14 @@ public:
         if (musicPlayer -> isSkipBackward() == true){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
                 sf::Time timeOffset = sf::seconds(10.0f);
-                currentMusicDuration -= ((currentMusicDuration + timeOffset) <= sf::Time::Zero)
-                                        ? sf::Time::Zero : timeOffset;
-                music.setPlayingOffset(currentMusicDuration);
 
+                if ((currentMusicDuration - timeOffset) < sf::Time::Zero){
+                    currentMusicDuration = sf::Time::Zero;
+                }
+                else{
+                    currentMusicDuration -= timeOffset;
+                }
+                music.setPlayingOffset(currentMusicDuration);
                 musicPlayer -> resetSkipBackward();
             }
         }

@@ -1,6 +1,3 @@
-// Written by David I. 2024
-// Sets up each app scene
-
 #pragma once
 #include <unordered_map>
 #include <string>
@@ -12,12 +9,13 @@ private:
     std::unordered_map<std::string, Scene*> scenes;
     std::vector<std::string> sceneIds = {"upload music", "visualization"};
     Scene* currentScene;
-    std::string lastSceneId;
-    std::string filePath;
+    std::string lastSceneId, filePath;
 
 public:
-    SceneManager(){
+    SceneManager(sf::RenderWindow& window){
         setScene();
+
+        loadScene(sceneIds[0], window);
     };
 
     void setScene(){
@@ -83,9 +81,11 @@ public:
         
         // If scene is empty load the next scene
         if (sceneId.empty()){
-            auto it = std::find(sceneIds.begin(), sceneIds.end(), lastSceneId);
+            std::vector<std::string>::iterator it;
+            it = std::find(sceneIds.begin(), sceneIds.end(), lastSceneId);
+
             if (it != sceneIds.end()){
-                sceneId = std::next(it, 1) -> c_str();
+                sceneId = *std::next(it, 1);
                 loadScene(sceneId, window);
             }
         }
@@ -126,11 +126,3 @@ public:
         unloadScenes();
     };
 };
-
-/* Notes
-* only one instance of class must exist and can only be accessible by audiovsualizer.cpp
-
-*** Methods ***
-* load scene or all scenes will be loaded already
-* next scene
-* delete all scene if the class is a ptr*/

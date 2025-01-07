@@ -1,8 +1,7 @@
-// Written by David I. 2024
-// Return instances of scenes
-
 #pragma once
 #include <string>
+
+/* Derived Scene classes*/
 #include "uploadMusic.hpp"
 #include "processAudio.hpp"
 #include "visualization.hpp"
@@ -10,8 +9,7 @@
 class SceneRegistry{
 private:
 public:
-    SceneRegistry(){};
-
+    SceneRegistry() = default;
     
     static Scene* getScene(const std::string& sceneId){
         if (sceneId == "upload music"){
@@ -29,5 +27,5 @@ public:
         return nullptr;
     }
 
-    ~SceneRegistry(){};    
+    ~SceneRegistry() = default;    
 };

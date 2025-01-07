@@ -80,7 +80,7 @@ public:
         playMusic = false;
     }
 
-    void getMusicDuration(sf::Time& currDuration, sf::Time& totalDuration){
+    void getMusicDuration(sf::Time& currDuration, const sf::Time& totalDuration){
         musicDurationBar -> setMusicDuration(currDuration, totalDuration);
     }
 

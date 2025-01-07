@@ -22,15 +22,23 @@ public:
 
         // Masked shape design
         maskedShape = backgroundShape;
-        maskedShape.setSize(sf::Vector2f(100.00f, shapeDimension_.y));
+        maskedShape.setSize(sf::Vector2f(0.00f, shapeDimension_.y));
         maskedShape.setFillColor(maskedColor_);
     };
 
     // Update progressBar
     void updateProgressBar(float fractCoverage){
         // Increase the width by fractional coverage (0.00 - 1.00)
-        float shapeWidth = shapeDimension_.x * fractCoverage;  
-
+        float shapeWidth;
+        if (fractCoverage < 0.0f){
+            shapeWidth = 0.0f;
+        }
+        else if (fractCoverage > 1.0f){
+            shapeWidth = shapeDimension_.x;
+        }
+        else{
+            shapeWidth = shapeDimension_.x * fractCoverage;
+        }
         maskedShape.setSize(sf::Vector2f(shapeWidth, maskedShape.getSize().y));
     };
 

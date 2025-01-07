@@ -45,15 +45,19 @@ public:
         return HHMMSS;
     }
 
-    void setMusicDuration (sf::Time& currDuration_, sf::Time& totalDuration_){
+    void setMusicDuration (sf::Time& currDuration_, const sf::Time& totalDuration_){
         currDuration = currDuration_, totalDuration = totalDuration_;
+
+        updateProgressBar(currDuration.asSeconds() / totalDuration.asSeconds());
     }
 
     void renderTimer(sf::RenderTarget& target){
         RenderText currDurTxt, remainingDuration;
 
-        
-        std::string currDur = secondToHHMMSS(currDuration), totalDur = secondToHHMMSS(totalDuration);
+        std::string currDur = secondToHHMMSS(currDuration);
+
+        sf::Time remainingTime = sf::seconds(totalDuration.asSeconds() - currDuration.asSeconds());
+        std::string totalDur = secondToHHMMSS(remainingTime);
 
         sf::Color fillColor = sf::Color::White;
         sf::Vector2f currDurPos = getShapePos();

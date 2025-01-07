@@ -1,8 +1,4 @@
-// Written by David I. 2024
-// Main file for Audio Visualizer app
-
 #include "audioVisualizer.hpp"
-
 
 void AudioVisualizer::loadWindow(){
     window.create(sf::VideoMode(windowWidth, windowHeight), windowTitle,
@@ -13,24 +9,19 @@ void AudioVisualizer::startAudioVisualizer(){
     loadWindow();
 
     // Crete instance of SceneManager
-    SceneManager sceneManager;
-
-    // Create upload music scene
-    sceneManager.loadScene("upload music", window);
+    SceneManager sceneManager(window);
 
     // Start the app loop
     while (window.isOpen()){
-        ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
-
         sf::Event event;
         while (window.pollEvent(event)){
-            if (event.type == sf::Event::Closed){ // Close window: exit
+            if (event.type == sf::Event::Closed){
                 window.close();
             }
 
             // Mouse click actions 
-            if (event.type == sf::Event::MouseButtonReleased && 
-            event.mouseButton.button == sf::Mouse::Left){
+            if (event.type == sf::Event::MouseButtonReleased &&
+                event.mouseButton.button == sf::Mouse::Left){
                 sceneManager.clickActions(window);
             }
 

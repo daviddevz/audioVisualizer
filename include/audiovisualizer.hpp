@@ -6,15 +6,12 @@
 
 class AudioVisualizer{
 public:
-    AudioVisualizer(){};
+    AudioVisualizer() = default;;
 
     void loadWindow();
-    //void loadFont();
-    //UploadButton loadUploadButton();
-    ProgressBar loadProgressBar();
     void startAudioVisualizer();
 
-    ~AudioVisualizer(){};
+    ~AudioVisualizer() = default;
 
 private:
     unsigned int windowWidth = 2000, windowHeight = 1000;
