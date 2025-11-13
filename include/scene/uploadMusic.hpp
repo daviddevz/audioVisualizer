@@ -56,7 +56,10 @@ public:
 
     // Next scene to move to
     std::string getNextSceneId() override{
-        return "visualization";
+        if (filePath.empty() == false){
+            return "visualization";
+        }
+        return "";
     }
 
     const std::string getFilePath() override{

@@ -3,7 +3,6 @@
 
 /* Derived Scene classes*/
 #include "uploadMusic.hpp"
-#include "processAudio.hpp"
 #include "visualization.hpp"
 
 class SceneRegistry{
@@ -16,10 +15,6 @@ public:
             UploadMusic* uploadMusic = new UploadMusic();
             return uploadMusic;
         }
-        /* else if (sceneId == "process audio"){
-            ProcessAudio* processAudio = new ProcessAudio();
-            return processAudio;
-        } */
         else if (sceneId == "visualization"){
             Visualization* visualization = new Visualization();
             return visualization;

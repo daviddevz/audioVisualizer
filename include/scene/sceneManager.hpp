@@ -6,42 +6,31 @@
 
 class SceneManager{
 private:
-    std::unordered_map<std::string, Scene*> scenes;
-    std::vector<std::string> sceneIds = {"upload music", "visualization"};
     Scene* currentScene;
+    std::vector<std::string> sceneIds = {"upload music", "visualization"};
     std::string lastSceneId, filePath;
 
 public:
     SceneManager(sf::RenderWindow& window){
-        setScene();
-
+        setScene(sceneIds[0]);
         loadScene(sceneIds[0], window);
     };
 
-    void setScene(){
-        for (std::string sceneId : sceneIds){
-            scenes[sceneId] = SceneRegistry::getScene(sceneId);
-        }
+    void setScene(std::string sceneId){
+        currentScene = SceneRegistry::getScene(sceneId);
     }
 
     void loadScene(const std::string& sceneId, sf::RenderWindow& window){
-        currentScene = scenes[sceneId];
         lastSceneId = sceneId;
-
         if (currentScene == nullptr){
             throw std::runtime_error("Scene not found");
         }
         else{
-            currentScene -> load(window);
-        }
+            if (sceneId == "visualization"){
+                currentScene -> setFilePath(filePath);
+            }
 
-        if (sceneId == "process audio"){
-            filePath = scenes["upload music"] -> getFilePath();
-            scenes["process audio"] -> setFilePath(filePath);
-        }
-        else if (sceneId == "visualization"){
-            filePath = scenes["upload music"] -> getFilePath();
-            scenes["visualization"] -> setFilePath(filePath);
+            currentScene -> load(window);
         }
     }
 
@@ -77,26 +66,25 @@ public:
         }
     }
 
-    void loadNextScene(std::string& sceneId, sf::RenderWindow& window){
-        
-        // If scene is empty load the next scene
-        if (sceneId.empty()){
-            std::vector<std::string>::iterator it;
-            it = std::find(sceneIds.begin(), sceneIds.end(), lastSceneId);
+    void loadNextScene(std::string& sceneId, sf::RenderWindow& window){        
+        if (lastSceneId == sceneIds[0]){ 
+            filePath = currentScene -> getFilePath();
+        }
 
-            if (it != sceneIds.end()){
-                sceneId = *std::next(it, 1);
-                loadScene(sceneId, window);
-            }
+        if (sceneId.empty()){
+            unloadScenes();
+            throw std::runtime_error("Found no next scene to load");
         }
         else{
+            unloadScenes();
+            currentScene = SceneRegistry::getScene(sceneId);
             loadScene(sceneId, window);
         }
 
         // If no music file is selected, go back to upload scene
-        if (lastSceneId == "process audio" && filePath.empty()){
-            delete scenes["upload music"];
-            scenes["upload music"] = SceneRegistry::getScene("upload music");
+        if (filePath.empty()){
+            unloadScenes();
+            currentScene = SceneRegistry::getScene("upload music");
             loadScene("upload music", window);
         }
     }
@@ -116,13 +104,10 @@ public:
     }
 
     void unloadScenes(){
-        for (std::string sceneId : sceneIds){
-            delete scenes[sceneId];
-        }
+        delete currentScene;
     }
 
     ~SceneManager(){
-        delete currentScene;
         unloadScenes();
     };
 };

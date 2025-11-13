@@ -11,8 +11,12 @@ void AudioVisualizer::startAudioVisualizer(){
     // Crete instance of SceneManager
     SceneManager sceneManager(window);
 
+    //sf::Clock clock;
     // Start the app loop
     while (window.isOpen()){
+        //float currentTime = clock.restart().asSeconds();
+        //std::cout<<"fps: "<<1.0f/currentTime<<"\n";
+        
         sf::Event event;
         while (window.pollEvent(event)){
             if (event.type == sf::Event::Closed){
@@ -42,4 +46,4 @@ void AudioVisualizer::startAudioVisualizer(){
         window.display();
     }
 }
-
+//-mwindows

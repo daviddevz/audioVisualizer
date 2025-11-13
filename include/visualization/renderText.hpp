@@ -16,7 +16,7 @@ public:
         text.setStyle(sf::Text::Bold);
     };
 
-    void draw(sf::RenderTarget& target) const {
+    void draw(sf::RenderWindow& target) const {
         target.draw(text);
     }
 

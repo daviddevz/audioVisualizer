@@ -1,6 +1,5 @@
 #pragma once
 #include "SFML/Window.hpp"
-#include "visualization/progressBar.hpp"
 #include "scene/sceneManager.hpp"
 
 

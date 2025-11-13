@@ -32,7 +32,7 @@ public:
                 (mousePosition.y <= static_cast<int>(buttonMemberData.posY) + static_cast<int>(buttonMemberData.height));
     };
 
-    virtual void draw(sf::RenderTarget& target) const = 0;
+    virtual void draw(sf::RenderWindow& target) const = 0;
 
     virtual std::string getTextObjectString() const {
         return "";

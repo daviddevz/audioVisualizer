@@ -62,7 +62,7 @@ public:
         buttonMemberData = {xPos - SHIFT, yPos, radius * 2.0f, radius * 2.0f};
     }
 
-    void draw(sf::RenderTarget& target) const override{
+    void draw(sf::RenderWindow& target) const override{
         target.draw(circle2);
         target.draw(triangle2);
         target.draw(rectangle2);

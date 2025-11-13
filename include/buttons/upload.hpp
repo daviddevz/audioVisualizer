@@ -35,7 +35,7 @@ public:
         strPtr = &text;
     };
 
-    void draw(sf::RenderTarget& target) const override {
+    void draw(sf::RenderWindow& target) const override {
         target.draw(shape);
         renderText.draw(target);
     };

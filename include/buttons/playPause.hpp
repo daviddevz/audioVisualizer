@@ -144,7 +144,7 @@ public:
         buttonMap[1] = buttonMemberData;
     }
 
-    void draw(sf::RenderTarget& target) const override{
+    void draw(sf::RenderWindow& target) const override{
         if (buttonType == 0){
             target.draw(circle);
             target.draw(triangle);

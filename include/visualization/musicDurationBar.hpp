@@ -51,7 +51,7 @@ public:
         updateProgressBar(currDuration.asSeconds() / totalDuration.asSeconds());
     }
 
-    void renderTimer(sf::RenderTarget& target){
+    void renderTimer(sf::RenderWindow& target){
         RenderText currDurTxt, remainingDuration;
 
         std::string currDur = secondToHHMMSS(currDuration);
