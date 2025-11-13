@@ -97,7 +97,7 @@ public:
 
         if (musicPlayer -> isSkipForward()){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                sf::Time timeOffset = sf::seconds(30.0f);
+                sf::Time timeOffset = sf::seconds(2.0f);
 
                 if ((currentMusicDuration + timeOffset) > music.getDuration()){
                     currentMusicDuration = music.getDuration();
@@ -112,7 +112,7 @@ public:
         
         if (musicPlayer -> isSkipBackward() == true){
             if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                sf::Time timeOffset = sf::seconds(10.0f);
+                sf::Time timeOffset = sf::seconds(2.0f);
 
                 if ((currentMusicDuration - timeOffset) < sf::Time::Zero){
                     currentMusicDuration = sf::Time::Zero;
