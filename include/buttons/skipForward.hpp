@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #define _USE_MATH_DEFINES
-#include <cmath>
+#include <math.h>
 
 class SkipForward : public Button{
 public:

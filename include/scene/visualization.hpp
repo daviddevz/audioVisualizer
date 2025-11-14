@@ -34,7 +34,7 @@ public:
             }
             std::cout<<"\n";
         }
- */
+        */
         windowDimension_.x = static_cast<float>(window.getSize().x);
         windowDimension_.y = static_cast<float>(window.getSize().y);
 
@@ -145,9 +145,9 @@ public:
         filePath_ = filePath;
     }
     
-    void setSTFTData (const std::vector<std::vector<std::complex<double>>>& stftData){
+    /* void setSTFTData (const std::vector<std::vector<std::complex<double>>>& stftData){
         
-    }
+    } */
 
     void loadMusic(){
         if (!music.openFromFile(filePath_)){
@@ -155,8 +155,8 @@ public:
         }
     }
 
-    void downsampleSTFT(); 
-    void renderSpectrum(sf::RenderWindow& window, const std::vector<std::complex<double>>& spectrum); 
+    /* void downsampleSTFT(); 
+    void renderSpectrum(sf::RenderWindow& window, const std::vector<std::complex<double>>& spectrum);  */
     
     ~Visualization(){
         delete audioProcessing;
@@ -171,5 +171,5 @@ private:
     sf::Music music;
     sf::Time currentMusicDuration = sf::Time::Zero;
     sf::Clock clock;
-    std::unordered_map<unsigned int, std::vector<float>> stftData_;
+    // std::unordered_map<unsigned int, std::vector<float>> stftData_;
 };
