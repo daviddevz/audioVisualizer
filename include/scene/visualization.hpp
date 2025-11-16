@@ -137,26 +137,19 @@ public:
         return false;
     }
 
-    std::string getNextSceneId() override{
+    std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& sceneId) override{
         return "";
     }
 
     void setFilePath(const std::string& filePath) override{
         filePath_ = filePath;
     }
-    
-    /* void setSTFTData (const std::vector<std::vector<std::complex<double>>>& stftData){
-        
-    } */
 
     void loadMusic(){
         if (!music.openFromFile(filePath_)){
             throw std::runtime_error("filePath not found");
         }
     }
-
-    /* void downsampleSTFT(); 
-    void renderSpectrum(sf::RenderWindow& window, const std::vector<std::complex<double>>& spectrum);  */
     
     ~Visualization(){
         delete audioProcessing;
@@ -171,5 +164,4 @@ private:
     sf::Music music;
     sf::Time currentMusicDuration = sf::Time::Zero;
     sf::Clock clock;
-    // std::unordered_map<unsigned int, std::vector<float>> stftData_;
 };

@@ -6,8 +6,11 @@
 
 class SceneManager{
 private:
-    Scene* currentScene;
-    std::vector<std::string> sceneIds = {"upload music", "visualization"};
+    Scene* currentScene; // Creating a pointer to scene class that has derived scene classes
+    SceneRegistry* sceneRegistry = new SceneRegistry();
+
+    std::vector<std::string> sceneIds = sceneRegistry -> getSceneIds();
+
     std::string lastSceneId, filePath;
 
 public:
@@ -17,7 +20,7 @@ public:
     };
 
     void setScene(std::string sceneId){
-        currentScene = SceneRegistry::getScene(sceneId);
+        currentScene = sceneRegistry -> getScene(sceneId);
     }
 
     void loadScene(const std::string& sceneId, sf::RenderWindow& window){
@@ -26,7 +29,8 @@ public:
             throw std::runtime_error("Scene not found");
         }
         else{
-            if (sceneId == "visualization"){
+            if (sceneId == sceneIds[1]){ 
+                // visualization id
                 currentScene -> setFilePath(filePath);
             }
 
@@ -77,15 +81,15 @@ public:
         }
         else{
             unloadScenes();
-            currentScene = SceneRegistry::getScene(sceneId);
+            currentScene = sceneRegistry -> getScene(sceneId);
             loadScene(sceneId, window);
         }
 
         // If no music file is selected, go back to upload scene
         if (filePath.empty()){
             unloadScenes();
-            currentScene = SceneRegistry::getScene("upload music");
-            loadScene("upload music", window);
+            currentScene = sceneRegistry -> getScene(sceneIds[0]);
+            loadScene(sceneIds[0], window);
         }
     }
 
@@ -98,13 +102,14 @@ public:
 
     std::string getNextSceneId(){
         if (currentScene != nullptr){
-            return currentScene -> getNextSceneId();
+            return currentScene -> getNextSceneId(sceneIds, lastSceneId);
         }
         return "";
     }
 
     void unloadScenes(){
         delete currentScene;
+        delete sceneRegistry;
     }
 
     ~SceneManager(){

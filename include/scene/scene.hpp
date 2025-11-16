@@ -1,5 +1,6 @@
 #pragma once
 #include "SFML/Window.hpp"
+#include <algorithm>
 
 class Scene{
 public:
@@ -17,7 +18,7 @@ public:
     
     virtual bool shouldMoveToNextScene() = 0;
 
-    virtual std::string getNextSceneId(){
+    virtual std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& scene){
         return "";
     }
 
@@ -27,4 +28,7 @@ public:
 
     virtual void setFilePath(const std::string& filePath_){}    
     virtual ~Scene() = default;
+
+private:
+    
 };

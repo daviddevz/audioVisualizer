@@ -8,7 +8,6 @@ public:
     UploadMusic() = default;
 
     UploadButton* button;
-    //bool scenActionComplete = false;
 
     // Set all the scene object ready to be drawn
     void load(sf::RenderWindow& window) override{
@@ -54,10 +53,15 @@ public:
         return false;
     }
 
-    // Next scene to move to
-    std::string getNextSceneId() override{
+    // Returns next sceneId after retrieving audio filepath
+    std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& sceneId) override{
         if (filePath.empty() == false){
-            return "visualization";
+            std::vector<std::string>::iterator it = std::find(sceneIds.begin(), sceneIds.end(), sceneId);
+
+            if (it != sceneIds.end() && std::next(it) != sceneIds.end()){
+                return *(it+1); // deference the iterator
+            }
+            return ""; // this code will never execute because uploadMusic is the first scene
         }
         return "";
     }
