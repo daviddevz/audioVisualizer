@@ -4,61 +4,62 @@
 #include <unordered_map>
 #include <string>
 #include <complex>
-#include "SFML/Audio/InputSoundFile.hpp"
+//#include "SFML/Audio/InputSoundFile.hpp"
+#include "SFML/Audio/SoundBuffer.hpp"
 
 class AudioProcessing {
 public:
     
     AudioProcessing(const std::string& filePath_, const unsigned int sampleRate, const unsigned int channels)
-    :filePath(filePath_), SAMPLE_RATE(sampleRate), CHANNELS(channels), channelAudioData(channels, std::vector<float>()){
+    :filePath(filePath_), SAMPLE_RATE(sampleRate), CHANNELS(channels), channelAudioData(channels, std::vector<sf::Int16>()){
         loadAudioFile();
-        SAMPLE_COUNT = musicFile.getSampleCount();
+        SAMPLE_COUNT = buffer.getSampleCount();
 
         maxSample.resize(CHANNELS);
         for (unsigned int i = 0; i < CHANNELS; i++){
             maxSample[i] = 0.0f;
         }
 
-        totalSampleCountPerChannel = SAMPLE_COUNT/CHANNELS;
+        totalSamplePerChannel = SAMPLE_COUNT/CHANNELS;
     };
 
     void loadAudioFile() {
-        if (!musicFile.openFromFile(filePath)){
+        if (!buffer.loadFromFile(filePath)){
             throw std::runtime_error("File Not Found");
         }
     }
 
-    // Extract audio sample
+    // Extract audio sample 16-bit PCM data -32,768 to 32,767
     void extractAudioSample(){
-        int counter = 0;
-        sf::Int16* samples = new sf::Int16[CHANNELS];
+        const sf::Int16* samples  = buffer.getSamples(); // Pointer to all the audio samples
 
         // Clears each channel in channel audio data
-        for (std::vector<float>& channelData : channelAudioData) {channelData.clear();};
+        for (std::vector<sf::Int16>& channelData : channelAudioData) {channelData.clear();};
 
-        while (counter < totalSampleCountPerChannel && musicFile.read(samples, CHANNELS)) {
-            for (unsigned int i = 0; i < CHANNELS; ++i) {
-                channelAudioData[i].push_back(samples[i]);
-                
-                if (maxSample[CHANNELS -1] != 0.0f){
-                    if (samples[i] > maxSample[i]){
-                        maxSample[i] = samples[i];
-                    } 
-                }
-
-                else {
-                    maxSample[i] = samples[i];
-                }
-            }
-            counter++;
+        // The read function is incorrect
+        for(unsigned int i = 0; i < SAMPLE_COUNT; ++i){
+            int channelIdx = i % CHANNELS; // ex. 0 or 1 for stereo
+            channelAudioData[channelIdx].push_back(samples[i]);
         }
+
+        /* // Test to print out 16-bit PCM data -32,768 to 32,767
+        int counter = 1;
+        for (std::vector<sf::Int16> chan : channelAudioData){
+            std::cout<<"Channel "<< counter <<":";
+            for(int i = 0; i < 4096; ++i){
+                std::cout<<chan[i] <<" ";
+            }
+            std::cout<<std::endl;
+            ++counter;
+        } */
         delete[] samples;
     }
     
+    // Refactor normalizeSample to extract the raw sample to find max
     // Normalize audio Sample
     // amplitude ratio = (amp / max amp )* 0.80
-    void normalizeSample(){
-        for (unsigned int i = 0; i < totalSampleCountPerChannel; i++){
+    std::vector<std::vector<float>> normalizeSample(){
+        for (unsigned int i = 0; i < totalSamplePerChannel; i++){
             for (unsigned int j = 0; i < CHANNELS; i++){
                 channelAudioData[j][i] = (channelAudioData[j][i] / maxSample[j]) * 0.80;
             }
@@ -73,8 +74,8 @@ private:
     const unsigned int CHANNELS;
     unsigned int SAMPLE_COUNT;
     
-    sf::InputSoundFile musicFile;
-    std::vector<std::vector<float>> channelAudioData; // this is a vector of vectors of floats that stores audio data from different channels
+    sf::SoundBuffer buffer;
+    std::vector<std::vector<sf::Int16>> channelAudioData; // this is a vector of vectors of floats that stores audio data from different channels
     std::vector<float> maxSample; // stores the audio sample with the maximum amplitude
-    int totalSampleCountPerChannel;
+    sf::Uint64 totalSamplePerChannel;
 };

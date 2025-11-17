@@ -23,8 +23,8 @@ public:
         const unsigned int SAMPLE_RATE = music.getSampleRate();
         const unsigned int CHANNELS = music.getChannelCount();
         audioProcessing = new AudioProcessing(filePath_, SAMPLE_RATE, CHANNELS);
-        /* audioProcessing -> extractAudioSample();
         audioProcessing -> extractAudioSample();
+        /*audioProcessing -> extractAudioSample();
         std::unordered_map<unsigned int, std::vector<float>> result = audioProcessing ->calculateSTFT();
 
         for (auto& pair:result){
@@ -164,4 +164,6 @@ private:
     sf::Music music;
     sf::Time currentMusicDuration = sf::Time::Zero;
     sf::Clock clock;
+
+    std::vector<std::vector<float>> normalizedAudioSample; // stores audio samples(inner vector) in different channels (outer vector)
 };
