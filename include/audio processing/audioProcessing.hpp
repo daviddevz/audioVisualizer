@@ -12,13 +12,13 @@ public:
     
     AudioProcessing(const std::string& filePath_, const unsigned int sampleRate, const unsigned int channels)
     :filePath(filePath_), SAMPLE_RATE(sampleRate), CHANNELS(channels), channelAudioData(channels, std::vector<sf::Int16>()){
-        loadAudioFile();
+        //loadAudioFile();
         SAMPLE_COUNT = buffer.getSampleCount();
 
-        maxSample.resize(CHANNELS);
+     /*    maxSample.resize(CHANNELS);
         for (unsigned int i = 0; i < CHANNELS; i++){
             maxSample[i] = 0.0f;
-        }
+        } */
 
         totalSamplePerChannel = SAMPLE_COUNT/CHANNELS;
     };
@@ -58,13 +58,13 @@ public:
     // Refactor normalizeSample to extract the raw sample to find max
     // Normalize audio Sample
     // amplitude ratio = (amp / max amp )* 0.80
-    std::vector<std::vector<float>> normalizeSample(){
+    /* std::vector<std::vector<float>> normalizeSample(){
         for (unsigned int i = 0; i < totalSamplePerChannel; i++){
             for (unsigned int j = 0; i < CHANNELS; i++){
                 channelAudioData[j][i] = (channelAudioData[j][i] / maxSample[j]) * 0.80;
             }
         }
-    }
+    } */
    
     ~AudioProcessing(){};
 
@@ -76,6 +76,6 @@ private:
     
     sf::SoundBuffer buffer;
     std::vector<std::vector<sf::Int16>> channelAudioData; // this is a vector of vectors of floats that stores audio data from different channels
-    std::vector<float> maxSample; // stores the audio sample with the maximum amplitude
+    
     sf::Uint64 totalSamplePerChannel;
 };

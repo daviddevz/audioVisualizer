@@ -76,7 +76,7 @@ public:
     }
 
     void musicEndAction(){
-        playPauseButton -> buttonType = 0;
+        playPauseButton -> setButtonType(0);
         playMusic = false;
     }
 

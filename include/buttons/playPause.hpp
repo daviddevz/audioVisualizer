@@ -8,11 +8,16 @@
 
 class PlayPause : public Button{
 public:
-    int buttonType = 0;
+    
     PlayPause(const sf::Vector2f windowDimension, const sf::Font& font)
     :windowDimension_(windowDimension), font_(font) {
         createPlay();
         createPause();
+    }
+
+    // Update the type of button
+    void setButtonType(int val){
+        buttonType = val;
     }
 
     void createPlay(){
@@ -208,4 +213,5 @@ private:
 
     // Key 0 = play, 1 = pause
     std::unordered_map<int, ButtonMemberData> buttonMap;
+    int buttonType = 0;
 };
