@@ -52,12 +52,12 @@ public:
         return nullptr;
     };
 
-    sf::Color getWindowClearColor(){
+    /* sf::Color getWindowClearColor(){
         if (currentScene != nullptr){
             return currentScene -> getClearColor();
         }
         return sf::Color::Black;
-    }
+    } */
 
     void clickActions(sf::RenderWindow& window){
         if (currentScene != nullptr){

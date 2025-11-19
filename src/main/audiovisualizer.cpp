@@ -31,7 +31,8 @@ void AudioVisualizer::startAudioVisualizer(){
             }
         }
         
-        window.clear(sceneManager.getWindowClearColor());
+        //window.clear(sceneManager.getWindowClearColor());
+        window.clear();
 
         if (sceneManager.shouldMoveToNextScene() == true){
             sceneId = sceneManager.getNextSceneId();
