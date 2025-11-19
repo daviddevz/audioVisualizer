@@ -25,7 +25,7 @@ void AudioVisualizer::startAudioVisualizer(){
                 sceneManager.clickActions(window);
             }
 
-            // Mouse hover actions
+            // Mouse movement actions
             if (event.type == sf::Event::MouseMoved){
                 sceneManager.cursorActions(window, window);
             }
@@ -34,12 +34,12 @@ void AudioVisualizer::startAudioVisualizer(){
         //window.clear(sceneManager.getWindowClearColor());
         window.clear();
 
-        if (sceneManager.shouldMoveToNextScene() == true){
+        if (sceneManager.shouldMoveToNextScene()){
             sceneId = sceneManager.getNextSceneId();
             sceneManager.loadNextScene(sceneId, window);
         }
-
         sceneManager.renderScene(window);
+        
         window.display();
     }
 }

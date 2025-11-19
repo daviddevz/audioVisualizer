@@ -45,12 +45,12 @@ public:
         }
     }
 
-    Scene* getCurrentScene(){
+    /* Scene* getCurrentScene(){
         if (currentScene != nullptr){
             return currentScene;
         }
         return nullptr;
-    };
+    }; */
 
     /* sf::Color getWindowClearColor(){
         if (currentScene != nullptr){
@@ -82,14 +82,16 @@ public:
         }
         else{
             unloadScenes();
-            currentScene = sceneRegistry -> getScene(sceneId);
+            //currentScene = sceneRegistry -> getScene(sceneId);
+            setScene(sceneId);
             loadScene(sceneId, window);
         }
 
         // If no music file is selected, go back to upload scene
         if (filePath.empty()){
             unloadScenes();
-            currentScene = sceneRegistry -> getScene(sceneIds[0]);
+            //currentScene = sceneRegistry -> getScene(sceneIds[0]);
+            setScene(sceneIds[0]);
             loadScene(sceneIds[0], window);
         }
     }
