@@ -18,9 +18,9 @@ public:
     
     virtual bool shouldMoveToNextScene() = 0;
 
-    virtual std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& scene){
+    /* virtual std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& scene){
         return "";
-    }
+    } */
 
     virtual const std::string getFilePath(){
         return "";

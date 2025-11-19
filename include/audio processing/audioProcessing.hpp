@@ -9,18 +9,18 @@
 
 class AudioProcessing {
 public:
-    
-    AudioProcessing(const std::string& filePath_, const unsigned int sampleRate, const unsigned int channels)
-    :filePath(filePath_), SAMPLE_RATE(sampleRate), CHANNELS(channels), channelAudioData(channels, std::vector<sf::Int16>()){
+    /*AudioProcessing(const std::string& filePath_, const unsigned int sampleRate, const unsigned int channels)
+    :filePath(filePath_), SAMPLE_RATE(sampleRate), CHANNELS(channels), channelAudioData(channels, std::vector<sf::Int16>())*/
+    AudioProcessing(const std::string& filePath_):filePath(filePath_){
         //loadAudioFile();
-        SAMPLE_COUNT = buffer.getSampleCount();
+        //SAMPLE_COUNT = buffer.getSampleCount();
 
-     /*    maxSample.resize(CHANNELS);
+        /*maxSample.resize(CHANNELS);
         for (unsigned int i = 0; i < CHANNELS; i++){
             maxSample[i] = 0.0f;
         } */
 
-        totalSamplePerChannel = SAMPLE_COUNT/CHANNELS;
+        //totalSamplePerChannel = SAMPLE_COUNT/CHANNELS;
     };
 
     void loadAudioFile() {
@@ -70,8 +70,8 @@ public:
 
 private:
     const std::string filePath;
-    const unsigned int SAMPLE_RATE; //
-    const unsigned int CHANNELS;
+    const unsigned int SAMPLE_RATE = 44100; //
+    const unsigned int CHANNELS = 2;
     unsigned int SAMPLE_COUNT;
     
     sf::SoundBuffer buffer;

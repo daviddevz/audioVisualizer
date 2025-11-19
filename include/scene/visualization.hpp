@@ -20,9 +20,9 @@ public:
     void load(sf::RenderWindow& window) override{
         loadMusic();
 
-        const unsigned int SAMPLE_RATE = music.getSampleRate();
-        const unsigned int CHANNELS = music.getChannelCount();
-        audioProcessing = new AudioProcessing(filePath_, SAMPLE_RATE, CHANNELS);
+        //const unsigned int SAMPLE_RATE = music.getSampleRate();
+        //const unsigned int CHANNELS = music.getChannelCount();
+        audioProcessing = new AudioProcessing(filePath_);
         //audioProcessing -> extractAudioSample();
         /*audioProcessing -> extractAudioSample();
         std::unordered_map<unsigned int, std::vector<float>> result = audioProcessing ->calculateSTFT();
@@ -137,9 +137,9 @@ public:
         return false;
     }
 
-    std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& sceneId) override{
+    /* std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& sceneId) override{
         return "";
-    }
+    } */
 
     void setFilePath(const std::string& filePath) override{
         filePath_ = filePath;

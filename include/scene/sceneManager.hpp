@@ -102,7 +102,13 @@ public:
 
     std::string getNextSceneId(){
         if (currentScene != nullptr){
-            return currentScene -> getNextSceneId(sceneIds, lastSceneId);
+            //return currentScene -> getNextSceneId(sceneIds, lastSceneId);
+            std::vector<std::string>::iterator it = std::find(sceneIds.begin(), sceneIds.end(), lastSceneId);
+
+            if (it != sceneIds.end() && std::next(it) != sceneIds.end()){
+                it += 1;
+                return *it;
+            }
         }
         return "";
     }

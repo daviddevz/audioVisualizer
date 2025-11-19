@@ -54,7 +54,7 @@ public:
     }
 
     // Returns next sceneId after retrieving audio filepath
-    std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& sceneId) override{
+    /* std::string getNextSceneId(std::vector<std::string>& sceneIds, std::string& sceneId) override{
         if (filePath.empty() == false){
             std::vector<std::string>::iterator it = std::find(sceneIds.begin(), sceneIds.end(), sceneId);
 
@@ -64,7 +64,7 @@ public:
             return ""; // this code will never execute because uploadMusic is the first scene
         }
         return "";
-    }
+    } */
 
     const std::string getFilePath() override{
         return filePath;
