@@ -12,6 +12,7 @@ private:
     std::vector<std::string> sceneIds = sceneRegistry -> getSceneIds();
 
     std::string lastSceneId, filePath;
+    int sceneIdx = 0;
 
 public:
     SceneManager(sf::RenderWindow& window){
@@ -103,12 +104,15 @@ public:
     std::string getNextSceneId(){
         if (currentScene != nullptr){
             //return currentScene -> getNextSceneId(sceneIds, lastSceneId);
-            std::vector<std::string>::iterator it = std::find(sceneIds.begin(), sceneIds.end(), lastSceneId);
+            //std::vector<std::string>::iterator it = std::find(sceneIds.begin(), sceneIds.end(), lastSceneId);
 
-            if (it != sceneIds.end() && std::next(it) != sceneIds.end()){
+            /* if (it != sceneIds.end() && std::next(it) != sceneIds.end()){
                 it += 1;
                 return *it;
-            }
+            } */
+           sceneIdx += 1;
+           //std::cout<<"SceneId: "<<sceneIdx <<std::endl;
+           return sceneIds[sceneIdx];
         }
         return "";
     }
