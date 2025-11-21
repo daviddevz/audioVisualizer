@@ -22,11 +22,10 @@ public:
         return "";
     } */
 
-    virtual const std::string getFilePath(){
-        return "";
-    }
+    virtual const std::string getFilePath(){return "";};
+    virtual const std::string getTypeOfVisual(){return "";}
 
-    virtual void setFilePath(const std::string& filePath_){}    
+    virtual void setFilePath(const std::string& filePath_){};    
     virtual ~Scene() = default;
 
 private:

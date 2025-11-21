@@ -1,13 +1,15 @@
 #pragma once
 #include "buttons/upload.hpp"
 #include "scene/scene.hpp"
-#include "audio processing/audioFileHandling.hpp"
+//#include "audio processing/audioFileHandling.hpp"
+#include <filesystem>
 
-class UploadMusic : public Scene{
+class SelectVisual : public Scene{
 public:
-    UploadMusic() = default;
+    SelectVisual() = default;
 
-    UploadButton* button;
+    UploadButton* waveform;
+    UploadButton* spectrogram;
 
     // Set all the scene object ready to be drawn
     void load(sf::RenderWindow& window) override{
@@ -16,39 +18,50 @@ public:
         buttWindDim = {static_cast<float>(winDim.width), static_cast<float>(winDim.height)};
 
         if(!font.loadFromFile("..\\font\\ARIAL.TTF")){
-            throw std::runtime_error("Failed to load font");
+            throw std::runtime_error("Failed to load font in selectVisual class");
         }
+       
+        waveform = new UploadButton(sf::Vector2f(buttWindDim.width, buttWindDim.height), font,
+        buttTxt[0], sf::Vector2f(buttDim.width, buttDim.height), buttTxtFontSize);
 
-        button = new UploadButton(sf::Vector2f(buttWindDim.width, buttWindDim.height), font,
-        uploadButtTxt, sf::Vector2f(buttDim.width, buttDim.height), buttTxtFontSize);
+        spectrogram = new UploadButton(sf::Vector2f(buttWindDim.width, buttWindDim.height), font,
+        buttTxt[1], sf::Vector2f(buttDim.width, buttDim.height), buttTxtFontSize);
+
+        waveform -> moveButton(-300, 0);
+        spectrogram -> moveButton(300, 0);
     }
 
     // Draw on window
     void render(sf::RenderWindow& window) override{
-        button -> draw(window);
+        waveform -> draw(window);
+        spectrogram -> draw(window);
     };
 
     // Actions perfromed when specific scene object is clicked
     void clickActions(sf::RenderWindow& window) override{
-        if (button -> isClicked(window) && button -> getTextObjectString() == uploadButtTxt){
-            sf::WindowHandle windowHandle = window.getSystemHandle();
+        if (waveform -> isClicked(window) && waveform -> getTextObjectString() == buttTxt[0]){
+            /*sf::WindowHandle windowHandle = window.getSystemHandle();
             AudioFileHandling audioPath;
             audioPath.openFileDir(windowHandle); // Opens file directory
-            filePath = audioPath.filePath.get();
+            filePath = audioPath.filePath.get(); */
+            typeOfVisual = buttTxt[0];
+        }
+
+        else if (spectrogram -> isClicked(window) && spectrogram -> getTextObjectString() == buttTxt[1]){
+            typeOfVisual = buttTxt[1];
         }
     }
 
     // Actions perfromed when specific scene object is hovered
     void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override{
-        if (button -> getTextObjectString() == uploadButtTxt){
-            button -> updateColor(window);
+        if (waveform -> getTextObjectString() == buttTxt[0]){
+            waveform -> updateColor(window);
         }
     }
 
     // boolean function that ensures when to move to next scene
     bool shouldMoveToNextScene() override{
-        if (filePath.empty() == false){
-            std::cout<<"Received file"<<std::endl;
+        if (typeOfVisual.empty() == false){
             return true;
         }
         return false;
@@ -67,12 +80,12 @@ public:
         return "";
     } */
 
-    const std::string getFilePath() override{
-        return filePath;
+    const std::string getTypeOfVisual() override{
+        return typeOfVisual;
     }
 
-    ~UploadMusic(){
-        delete button;
+    ~SelectVisual(){
+        delete waveform, spectrogram;
     };
 
 private:
@@ -85,7 +98,8 @@ private:
     windowDim winDim;
     buttonDim buttDim = {500.0f, 100.0f};
     buttonDim buttWindDim;
-    std::string uploadButtTxt = "UPLOAD MUSIC", filePath;
+    std::string buttTxt[2] = {"WAVEFORM", "SPECTROGRAM"};
+    std::string typeOfVisual;
     sf::Font font;
     int buttTxtFontSize = 50;
 };

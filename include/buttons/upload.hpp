@@ -53,9 +53,11 @@ public:
         }
     };
 
-    std::string getTextObjectString() const override{
-        return *strPtr;
+    void moveButton(float xPos, float yPos){
+        shape.move(xPos, yPos);
     }
+
+    std::string getTextObjectString() const override{return *strPtr;}
 
     ~UploadButton() = default;
 

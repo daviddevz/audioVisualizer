@@ -29,7 +29,7 @@ public:
             ofn.lpstrFileTitle = NULL; // Prevent storing the title of the file
             ofn.nMaxFileTitle = 0; // Tells the dialog box that the title buffer is 0 since lpstrFileTitle is Null
             ofn.lpstrInitialDir = nullptr; // Default initial directory displayed on dialog to current working directory of application
-            ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST; // Bit that sets what user can do upon initilizing dialog box
+            ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR; // Bit that sets what user can do upon initializing dialog box
             
             // Display the Open dialog box based on configuration of ofn structure 
             if(GetOpenFileNameW(&ofn) == TRUE) {
@@ -48,12 +48,6 @@ public:
                 strcpy(filePath.get(), narrowStr.data()); // Copy narrowStr to filePath
 
                 CloseHandle(hf); // Close handle to release system resources
-            
-        #elif __APPLE__
-            // macOs-specific code
-
-        #elif __linux__
-            // linux-specific code
 
         #endif
         }

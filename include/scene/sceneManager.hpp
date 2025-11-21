@@ -71,7 +71,7 @@ public:
         }
     }
 
-    void loadNextScene(std::string& sceneId, sf::RenderWindow& window){        
+    void loadNextScene(std::string& sceneId, sf::RenderWindow& window){
         if (lastSceneId == sceneIds[0]){ 
             filePath = currentScene -> getFilePath();
         }
@@ -84,6 +84,7 @@ public:
             unloadScenes();
             //currentScene = sceneRegistry -> getScene(sceneId);
             setScene(sceneId);
+            
             loadScene(sceneId, window);
         }
 
@@ -97,8 +98,9 @@ public:
     }
 
     bool shouldMoveToNextScene(){
-        if (currentScene != nullptr){
-            return currentScene -> shouldMoveToNextScene();
+        if (currentScene != nullptr && currentScene -> shouldMoveToNextScene()){
+            std::cout<<"Last Scene: "<<lastSceneId<<" True"<<std::endl;
+            return true;
         }
         return false;
     }
@@ -113,7 +115,7 @@ public:
                 return *it;
             } */
            sceneIdx += 1;
-           //std::cout<<"SceneId: "<<sceneIdx <<std::endl;
+           std::cout<<"Next SceneId: "<<sceneIds[sceneIdx] <<" sceneIdx "<<sceneIdx<<std::endl;
            return sceneIds[sceneIdx];
         }
         return "";

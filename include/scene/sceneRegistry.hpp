@@ -3,11 +3,12 @@
 
 //Derived Scene classes - don't need to include scene header file
 #include "uploadMusic.hpp"
+#include "selectVisual.hpp"
 #include "visualization.hpp"
 
 class SceneRegistry{
 private:
-    const std::vector<std::string> sceneIds = {"upload music", "visualization"};
+    const std::vector<std::string> sceneIds = {"uploadMusic", "selectVisual", "visualization"};
 public:
     SceneRegistry() = default;
     
@@ -20,7 +21,13 @@ public:
             UploadMusic* uploadMusic = new UploadMusic();
             return uploadMusic;
         }
+
         else if (sceneId == sceneIds[1]){
+            SelectVisual* selectVisual = new SelectVisual();
+            return selectVisual;
+        }
+        
+        else if (sceneId == sceneIds[2]){
             Visualization* visualization = new Visualization();
             return visualization;
         }
