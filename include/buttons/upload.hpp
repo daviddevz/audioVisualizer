@@ -32,7 +32,7 @@ public:
         buttonMemberData.height = buttonDimension.y;
         addButtonMemberData(buttonMemberData);
 
-        strPtr = &text;
+        // strPtr = &text;
     };
 
     void draw(sf::RenderWindow& target) const override {
@@ -55,15 +55,20 @@ public:
 
     void moveButton(float xPos, float yPos){
         shape.move(xPos, yPos);
+        renderText.move(xPos, yPos); // get current text position and move by offset
+
+        buttonMemberData.posX = shape.getPosition().x;
+        buttonMemberData.posY = shape.getPosition().y;
+        addButtonMemberData(buttonMemberData); //Update new position of the buttons
     }
 
-    std::string getTextObjectString() const override{return *strPtr;}
+    // std::string getTextObjectString() const override{return *strPtr;}
 
     ~UploadButton() = default;
 
 private:
     RenderText renderText;
-    const std::string* strPtr;
+    // const std::string* strPtr;
     sf::RectangleShape shape;
     ButtonMemberData buttonMemberData;
 };

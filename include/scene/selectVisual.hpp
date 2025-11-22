@@ -2,7 +2,7 @@
 #include "buttons/upload.hpp"
 #include "scene/scene.hpp"
 //#include "audio processing/audioFileHandling.hpp"
-#include <filesystem>
+//#include <filesystem>
 
 class SelectVisual : public Scene{
 public:
@@ -22,13 +22,13 @@ public:
         }
        
         waveform = new UploadButton(sf::Vector2f(buttWindDim.width, buttWindDim.height), font,
-        buttTxt[0], sf::Vector2f(buttDim.width, buttDim.height), buttTxtFontSize);
+        buttTxt[0], sf::Vector2f(buttDim[0].width, buttDim[0].height), buttTxtFontSize);
 
         spectrogram = new UploadButton(sf::Vector2f(buttWindDim.width, buttWindDim.height), font,
-        buttTxt[1], sf::Vector2f(buttDim.width, buttDim.height), buttTxtFontSize);
+        buttTxt[1], sf::Vector2f(buttDim[1].width, buttDim[1].height), buttTxtFontSize);
 
-        waveform -> moveButton(-300, 0);
-        spectrogram -> moveButton(300, 0);
+        waveform -> moveButton(-500, 0);
+        spectrogram -> moveButton(500, 0);
     }
 
     // Draw on window
@@ -39,7 +39,8 @@ public:
 
     // Actions perfromed when specific scene object is clicked
     void clickActions(sf::RenderWindow& window) override{
-        if (waveform -> isClicked(window) && waveform -> getTextObjectString() == buttTxt[0]){
+        // && waveform -> getTextObjectString() == buttTxt[0]
+        if (waveform -> isClicked(window)){
             /*sf::WindowHandle windowHandle = window.getSystemHandle();
             AudioFileHandling audioPath;
             audioPath.openFileDir(windowHandle); // Opens file directory
@@ -47,16 +48,23 @@ public:
             typeOfVisual = buttTxt[0];
         }
 
-        else if (spectrogram -> isClicked(window) && spectrogram -> getTextObjectString() == buttTxt[1]){
+        // && spectrogram -> getTextObjectString() == buttTxt[1]
+        else if (spectrogram -> isClicked(window)){
             typeOfVisual = buttTxt[1];
         }
     }
 
     // Actions perfromed when specific scene object is hovered
     void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override{
-        if (waveform -> getTextObjectString() == buttTxt[0]){
+        waveform -> updateColor(window);
+        spectrogram -> updateColor(window);
+        /* if (waveform -> getTextObjectString() == buttTxt[0]){
             waveform -> updateColor(window);
         }
+
+        else if (spectrogram -> getTextObjectString() == buttTxt[1]){
+            spectrogram -> updateColor(window);
+        } */
     }
 
     // boolean function that ensures when to move to next scene
@@ -96,7 +104,7 @@ private:
         float width, height;
     };
     windowDim winDim;
-    buttonDim buttDim = {500.0f, 100.0f};
+    buttonDim buttDim[2] = {{400.0f, 100.0f}, {500.0f, 100.0f}};
     buttonDim buttWindDim;
     std::string buttTxt[2] = {"WAVEFORM", "SPECTROGRAM"};
     std::string typeOfVisual;

@@ -30,7 +30,8 @@ public:
 
     // Actions perfromed when specific scene object is clicked
     void clickActions(sf::RenderWindow& window) override{
-        if (button -> isClicked(window) && button -> getTextObjectString() == uploadButtTxt){
+        // button -> getTextObjectString() == uploadButtTxt
+        if (button -> isClicked(window)){
             sf::WindowHandle windowHandle = window.getSystemHandle();
             AudioFileHandling audioPath;
             audioPath.openFileDir(windowHandle); // Opens file directory
@@ -40,9 +41,10 @@ public:
 
     // Actions perfromed when specific scene object is hovered
     void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override{
-        if (button -> getTextObjectString() == uploadButtTxt){
+        button -> updateColor(window);
+        /* if (button -> getTextObjectString() == uploadButtTxt){
             button -> updateColor(window);
-        }
+        } */
     }
 
     // boolean function that ensures when to move to next scene

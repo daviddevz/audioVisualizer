@@ -28,6 +28,9 @@ public:
         text.setPosition(position);
     }
     
+    void move(float xPos, float yPos){
+        text.move(xPos, yPos);
+    }
 private:
     sf::Text text;
 };

@@ -34,7 +34,7 @@ public:
 
     virtual void draw(sf::RenderWindow& target) const = 0;
 
-    virtual std::string getTextObjectString() const {return "";}
+    // virtual std::string getTextObjectString() const {return "";}
 
     virtual void updateColor(sf::RenderWindow& target) = 0;
 
