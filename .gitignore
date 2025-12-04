@@ -3,7 +3,6 @@
 makefile
 *.bat
 *.txt
-build/*
 
 #executable
 *.exe
