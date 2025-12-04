@@ -1,8 +1,8 @@
 #compile source
 .vscode/*
 makefile
-#*.bat
-#*.txt
+*.bat
+*.txt
 build/*
 
 #executable
