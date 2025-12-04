@@ -45,11 +45,13 @@ public:
             AudioFileHandling audioPath;
             audioPath.openFileDir(windowHandle); // Opens file directory
             filePath = audioPath.filePath.get(); */
+            //std::cout<<"waveform"<<std::endl;
             typeOfVisual = buttTxt[0];
         }
 
         // && spectrogram -> getTextObjectString() == buttTxt[1]
         else if (spectrogram -> isClicked(window)){
+            //std::cout<<"spectrogram"<<std::endl;
             typeOfVisual = buttTxt[1];
         }
     }
@@ -69,10 +71,12 @@ public:
 
     // boolean function that ensures when to move to next scene
     bool shouldMoveToNextScene() override{
-        if (typeOfVisual.empty() == false){
+        //std::cout<<"Is typeOfVisual empty? "<<typeOfVisual.empty()<<std::endl;
+        return (typeOfVisual.empty() == false);
+        /* if (typeOfVisual.empty() == false){
             return true;
         }
-        return false;
+        return false; */
     }
 
     // Returns next sceneId after retrieving audio filepath
@@ -93,7 +97,8 @@ public:
     }
 
     ~SelectVisual(){
-        delete waveform, spectrogram;
+        delete waveform;
+        delete spectrogram;
     };
 
 private:

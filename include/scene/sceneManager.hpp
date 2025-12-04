@@ -30,8 +30,9 @@ public:
             throw std::runtime_error("Scene not found");
         }
         else{
-            if (sceneId == sceneIds[1]){ 
+            if (sceneId == sceneIds[2]){ 
                 // visualization id
+                //std::cout<<"File Path: "<<filePath<<std::endl;
                 currentScene -> setFilePath(filePath);
             }
 
@@ -99,7 +100,7 @@ public:
 
     bool shouldMoveToNextScene(){
         if (currentScene != nullptr && currentScene -> shouldMoveToNextScene()){
-            std::cout<<"Last Scene: "<<lastSceneId<<" True"<<std::endl;
+            //std::cout<<"Last Scene: "<<lastSceneId<<" True"<<std::endl;
             return true;
         }
         return false;
@@ -115,7 +116,7 @@ public:
                 return *it;
             } */
            sceneIdx += 1;
-           std::cout<<"Next SceneId: "<<sceneIds[sceneIdx] <<" sceneIdx "<<sceneIdx<<std::endl;
+           //std::cout<<"Next SceneId: "<<sceneIds[sceneIdx] <<" sceneIdx "<<sceneIdx<<std::endl;
            return sceneIds[sceneIdx];
         }
         return "";
@@ -123,10 +124,10 @@ public:
 
     void unloadScenes(){
         delete currentScene;
-        delete sceneRegistry;
     }
 
     ~SceneManager(){
         unloadScenes();
+        delete sceneRegistry;
     };
 };

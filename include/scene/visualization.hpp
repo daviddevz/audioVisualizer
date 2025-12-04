@@ -17,12 +17,12 @@ public:
     
     Visualization() = default;
 
-    void load(sf::RenderWindow& window) override{
+    void load(sf::RenderWindow& window) override {
         loadMusic();
 
         //const unsigned int SAMPLE_RATE = music.getSampleRate();
         //const unsigned int CHANNELS = music.getChannelCount();
-        audioProcessing = new AudioProcessing(filePath_);
+        //audioProcessing = new AudioProcessing(filePath_);
         //audioProcessing -> extractAudioSample();
         /*audioProcessing -> extractAudioSample();
         std::unordered_map<unsigned int, std::vector<float>> result = audioProcessing ->calculateSTFT();
@@ -45,7 +45,7 @@ public:
         musicPlayer = new MusicPlayer(windowDimension_, font);
     };
 
-    void render(sf::RenderWindow& window) override{
+    void render(sf::RenderWindow& window) override {
         musicPlayer -> render(window);
 
         if (music.getStatus() == sf::Music::Stopped){
@@ -75,7 +75,7 @@ public:
 
     };
 
-    void clickActions(sf::RenderWindow& window) override{
+    void clickActions(sf::RenderWindow& window) override {
         musicPlayer -> clickActions(window);
         
         if (musicPlayer -> isMusicPaused() == false){
@@ -126,11 +126,11 @@ public:
         }
     }
 
-    void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override{
+    void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override {
         musicPlayer -> cursorActions(window, target);
     }
 
-    bool shouldMoveToNextScene() override{
+    bool shouldMoveToNextScene() override {
         /* if(music.getStatus() == sf::Music::Stopped){
             return true;
         } */
@@ -141,21 +141,21 @@ public:
         return "";
     } */
 
-    void setFilePath(const std::string& filePath) override{
+    void setFilePath(const std::string& filePath) override {
         filePath_ = filePath;
     }
 
-    void loadMusic(){
+    void loadMusic() {
         if (!music.openFromFile(filePath_)){
             throw std::runtime_error("filePath not found");
         }
     }
     
-    ~Visualization(){
+    ~Visualization() {
         delete audioProcessing;
         delete musicPlayer;
         delete waveGeneration;
-    }
+    };
 
 private:
     sf::Vector2f windowDimension_;

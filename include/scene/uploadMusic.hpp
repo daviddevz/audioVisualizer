@@ -49,11 +49,12 @@ public:
 
     // boolean function that ensures when to move to next scene
     bool shouldMoveToNextScene() override{
-        if (filePath.empty() == false){
-            std::cout<<"Received file"<<std::endl;
+        return (filePath.empty() == false);
+        /* if (filePath.empty() == false){
+            //std::cout<<"Received file"<<std::endl;
             return true;
         }
-        return false;
+        return false; */
     }
 
     // Returns next sceneId after retrieving audio filepath

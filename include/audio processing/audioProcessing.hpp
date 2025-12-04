@@ -1,45 +1,143 @@
 #pragma once
-#include <vector>
-#include <algorithm>
-#include <unordered_map>
-#include <string>
-#include <complex>
-//#include "SFML/Audio/InputSoundFile.hpp"
-#include "SFML/Audio/SoundBuffer.hpp"
+#define MA_NO_FLAC
 
-class AudioProcessing {
+//#include <vector>
+//#include <algorithm>
+//#include <unordered_map>
+#include <string>
+//#include <complex>
+#include <cstdint>
+//#include "SFML/Audio/InputSoundFile.hpp"
+//#include "SFML/Audio/SoundBuffer.hpp"
+//#include "SFML/Audio/Music.hpp"
+#include "SFML/Audio/SoundStream.hpp"
+
+extern "C" {
+    #include "miniaudio/miniaudio.h"
+}
+
+
+class AudioProcessing: public sf::SoundStream{
 public:
     /*AudioProcessing(const std::string& filePath_, const unsigned int sampleRate, const unsigned int channels)
     :filePath(filePath_), SAMPLE_RATE(sampleRate), CHANNELS(channels), channelAudioData(channels, std::vector<sf::Int16>())*/
-    AudioProcessing(const std::string& filePath_):filePath(filePath_){
-        //loadAudioFile();
-        //SAMPLE_COUNT = buffer.getSampleCount();
-
-        /*maxSample.resize(CHANNELS);
-        for (unsigned int i = 0; i < CHANNELS; i++){
-            maxSample[i] = 0.0f;
-        } */
-
-        //totalSamplePerChannel = SAMPLE_COUNT/CHANNELS;
+    AudioProcessing(const std::string& filePath){
+        loadAudioFile(filePath);
+        queryDecoder();
     };
 
-    void loadAudioFile() {
-        if (!buffer.loadFromFile(filePath)){
-            throw std::runtime_error("File Not Found");
+    // Initialize decoder and pass the file path
+    void loadAudioFile(const std::string& filePath) {
+        const char* filePath_ = filePath.c_str(); // Convert std::string to C-style string
+        ma_result result = ma_decoder_init_file(filePath_, NULL, &decoder);
+        if (result != MA_SUCCESS) {
+            throw std::runtime_error("Could not load file");
         }
     }
 
-    // Extract audio sample 16-bit PCM data -32,768 to 32,767
+    // Query decoder for output format, sample rate and channel count
+    void queryDecoder(){
+        result = ma_data_source_get_data_format(&decoder, &format, &CHANNELS, &SAMPLE_RATE, channelMap,
+        MA_MAX_CHANNELS);
+        if (result != MA_SUCCESS) {
+            throw std::runtime_error("Failed to retrieve data format");
+        }
+
+        // check if FRAMES and CHANNELS are initialized
+        if (!(FRAMES > 0 && CHANNELS > 0)){
+            throw std::runtime_error("Failed to initialize FRAMES and CHANNELS");
+        }
+        SAMPLE_COUNT = FRAMES * CHANNELS;
+
+        // allocate adequate size for frameOut array
+        if (format == ma_format_s16){
+            framesOut = new int16_t[SAMPLE_COUNT];
+        }
+        else if (format == ma_format_f32){
+            framesOut = new float[SAMPLE_COUNT];
+        }
+        else{
+            throw std::runtime_error("Play 16 bit int or 32 bit float PCM audio");
+        }
+
+        sf::SoundStream::initialize(CHANNELS, SAMPLE_RATE);
+    }
+
+    sf::Int16* convert_f32_to_s16(std::size_t& sampleCount){
+        sf::Int16* s16Ptr = new sf::Int16[sampleCount];
+        float* pCopy = static_cast<float*>(framesOut); // specify the type of pointer in stack, assigns void ptr
+
+        const float MAX_SCALE = 32767.0F;
+        const float MIN_SCALE = -32768.0F;
+
+        // To convert f32 to s16 multiply PCM data by 32767.0f
+        for(int i = 0; i < sampleCount; i++){
+            if (pCopy[i] >= 1.0F){
+                s16Ptr[i] = static_cast<sf::Int16>(MAX_SCALE);
+            }
+            else if (pCopy[i] <= -1.0F){
+                s16Ptr[i] = static_cast<sf::Int16>(MIN_SCALE);
+            }
+            else{
+                s16Ptr[i] = static_cast<sf::Int16>(pCopy[i] * MAX_SCALE);
+            }
+        }
+        s16PtrCopy = s16Ptr; // Create a copy of ptr to same address so it can be properly deallocated
+        convert_f32_to_s16_flag = true;
+        return s16Ptr;
+    }
+
+    sf::Int16* validateAudioFormat(void* pFramesOut, std::size_t& sampleCount){
+        sf::Int16* tempFramesOut;
+        if (format == ma_format_s16){
+            tempFramesOut = static_cast<sf::Int16*>(pFramesOut);
+        }
+        else if (format == ma_format_f32){
+            tempFramesOut = convert_f32_to_s16(sampleCount); // Assign address on stack
+        }
+        return tempFramesOut;
+    }
+    
+    // Retrieve read samples and configure sound stream chunk in SFML format
+    bool onGetData (Chunk &data) override{
+        if (convert_f32_to_s16_flag){
+            delete[] s16PtrCopy; // deallocate previous sample
+            convert_f32_to_s16_flag = false;
+        }
+
+        uint64_t framesRead = 0; // Frames actually read
+        /*
+        pDecoder → your decoder instance
+        pFrames → pointer to the buffer where PCM samples will be written (framesOut)
+                1 Frame = N_Samples * Channels
+        framesToRead → the maximum number of PCM frames you want (FRAMES)
+        framesRead → output: the actual number of frames decoded (framesRead)
+        */
+        ma_result result = ma_decoder_read_pcm_frames(&decoder, framesOut, FRAMES, &framesRead);
+        if (!(framesRead >= 0)){
+            throw std::runtime_error("Decoder failed to read any frame");
+        }
+        data.sampleCount = framesRead * CHANNELS; // Frames might be different, so can't assign it once
+
+        if (framesRead < FRAMES) {
+            data.samples = validateAudioFormat(framesOut, data.sampleCount);
+            return false;
+        }
+        data.samples = validateAudioFormat(framesOut, data.sampleCount);
+        return true;
+    }
+
+    /*// Extract audio sample 16-bit PCM data -32,768 to 32,767
     void extractAudioSample(){
-        const sf::Int16* samples  = buffer.getSamples(); // Pointer to all the audio samples
+        //const sf::Int16* samples  = buffer.getSamples(); // Pointer to all the audio samples
 
         // Clears each channel in channel audio data
-        for (std::vector<sf::Int16>& channelData : channelAudioData) {channelData.clear();};
+        // for (std::vector<sf::Int16>& channelData : channelAudioData) {channelData.clear();};
 
         // The read function is incorrect
         for(unsigned int i = 0; i < SAMPLE_COUNT; ++i){
             int channelIdx = i % CHANNELS; // ex. 0 or 1 for stereo
-            channelAudioData[channelIdx].push_back(samples[i]);
+            //channelAudioData[channelIdx].push_back(samples[i]);
         }
 
         /* // Test to print out 16-bit PCM data -32,768 to 32,767
@@ -51,31 +149,36 @@ public:
             }
             std::cout<<std::endl;
             ++counter;
-        } */
-        delete[] samples;
-    }
-    
-    // Refactor normalizeSample to extract the raw sample to find max
-    // Normalize audio Sample
-    // amplitude ratio = (amp / max amp )* 0.80
-    /* std::vector<std::vector<float>> normalizeSample(){
-        for (unsigned int i = 0; i < totalSamplePerChannel; i++){
-            for (unsigned int j = 0; i < CHANNELS; i++){
-                channelAudioData[j][i] = (channelAudioData[j][i] / maxSample[j]) * 0.80;
-            }
         }
+        //delete[] samples;
     } */
    
-    ~AudioProcessing(){};
+    ~AudioProcessing(){
+        delete[] framesOut;
+
+        if (convert_f32_to_s16_flag){
+            delete[] s16PtrCopy; // deallocate last samples not deallocated in onGetData
+        }
+        //delete[] audioChunk.samples; // delete allocated memory returned by convert_f32_to_s16(...)
+        ma_decoder_uninit(&decoder);
+    };
 
 private:
-    const std::string filePath;
-    const unsigned int SAMPLE_RATE = 44100; //
-    const unsigned int CHANNELS = 2;
-    unsigned int SAMPLE_COUNT;
+    ma_uint32 SAMPLE_RATE; // Hz or samples per second = 44100 or 48000
+    ma_uint32 CHANNELS;
+    const uint16_t FRAMES = 1024; // Samples per channel
+    uint64_t SAMPLE_COUNT; // FRAMES x CHANNELS
+
+    // we don't know whether the output format is 16 bit int or 32 bit float array
+    // We wil convert float array to 16 bit int array before passing it to sound stream chunk
+    void* framesOut;
+    sf::Int16* s16PtrCopy;
+    bool convert_f32_to_s16_flag = false; 
     
-    sf::SoundBuffer buffer;
-    std::vector<std::vector<sf::Int16>> channelAudioData; // this is a vector of vectors of floats that stores audio data from different channels
-    
-    sf::Uint64 totalSamplePerChannel;
+
+    ma_decoder decoder;
+    ma_result result;
+    ma_format format; // struct: ma_format_f32 = 5 (32 bit float), ma_format_s16 = 2 (16 bit int)
+    ma_channel channelMap[MA_MAX_CHANNELS]; // maps out channel. MA_MAX_CHANNELS = 254
 };
+
