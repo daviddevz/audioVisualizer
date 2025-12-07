@@ -1,26 +1,24 @@
 #pragma once
 #define MA_NO_FLAC
 
-//#include <vector>
-//#include <algorithm>
-//#include <unordered_map>
+#include <vector>
+#include <algorithm>
+#include <unordered_map>
 #include <string>
-//#include <complex>
 #include <cstdint>
-//#include "SFML/Audio/InputSoundFile.hpp"
-//#include "SFML/Audio/SoundBuffer.hpp"
-//#include "SFML/Audio/Music.hpp"
-#include "SFML/Audio/SoundStream.hpp"
+#include "SFML/Audio/Music.hpp"
 
 extern "C" {
     #include "miniaudio/miniaudio.h"
 }
 
-
+/*
+    This class will stream audio from file for playing and decode audio for wave generation.
+    The music playing function will be tied to MusicPlayer class for music playing animation and 
+    the decoding function will be used for wave generation of PCM data or frequency.
+*/
 class AudioProcessing: public sf::SoundStream{
 public:
-    /*AudioProcessing(const std::string& filePath_, const unsigned int sampleRate, const unsigned int channels)
-    :filePath(filePath_), SAMPLE_RATE(sampleRate), CHANNELS(channels), channelAudioData(channels, std::vector<sf::Int16>())*/
     AudioProcessing(const std::string& filePath){
         loadAudioFile(filePath);
         queryDecoder();
@@ -127,32 +125,6 @@ public:
         return true;
     }
 
-    /*// Extract audio sample 16-bit PCM data -32,768 to 32,767
-    void extractAudioSample(){
-        //const sf::Int16* samples  = buffer.getSamples(); // Pointer to all the audio samples
-
-        // Clears each channel in channel audio data
-        // for (std::vector<sf::Int16>& channelData : channelAudioData) {channelData.clear();};
-
-        // The read function is incorrect
-        for(unsigned int i = 0; i < SAMPLE_COUNT; ++i){
-            int channelIdx = i % CHANNELS; // ex. 0 or 1 for stereo
-            //channelAudioData[channelIdx].push_back(samples[i]);
-        }
-
-        /* // Test to print out 16-bit PCM data -32,768 to 32,767
-        int counter = 1;
-        for (std::vector<sf::Int16> chan : channelAudioData){
-            std::cout<<"Channel "<< counter <<":";
-            for(int i = 0; i < 4096; ++i){
-                std::cout<<chan[i] <<" ";
-            }
-            std::cout<<std::endl;
-            ++counter;
-        }
-        //delete[] samples;
-    } */
-   
     ~AudioProcessing(){
         delete[] framesOut;
 

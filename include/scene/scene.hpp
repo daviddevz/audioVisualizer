@@ -1,6 +1,6 @@
 #pragma once
 #include "SFML/Window.hpp"
-#include <algorithm>
+#include "SFML/Graphics.hpp"
 
 class Scene{
 public:
@@ -25,7 +25,14 @@ public:
     virtual const std::string getFilePath(){return "";};
     virtual const std::string getTypeOfVisual(){return "";}
 
-    virtual void setFilePath(const std::string& filePath_){};    
+    void loadFont(sf::Font& font){
+        if(!font.loadFromFile("..\\font\\ARIAL.TTF")){
+            throw std::runtime_error("Failed to load font");
+        }
+    }
+
+    virtual void setFilePath(const std::string& filePath_){};
+       
     virtual ~Scene() = default;
 
 private:

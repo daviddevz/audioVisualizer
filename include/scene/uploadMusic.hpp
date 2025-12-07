@@ -11,13 +11,10 @@ public:
 
     // Set all the scene object ready to be drawn
     void load(sf::RenderWindow& window) override{
+        loadFont(font);
         
         winDim = {window.getSize().x , window.getSize().y};
         buttWindDim = {static_cast<float>(winDim.width), static_cast<float>(winDim.height)};
-
-        if(!font.loadFromFile("..\\font\\ARIAL.TTF")){
-            throw std::runtime_error("Failed to load font");
-        }
 
         button = new UploadButton(sf::Vector2f(buttWindDim.width, buttWindDim.height), font,
         uploadButtTxt, sf::Vector2f(buttDim.width, buttDim.height), buttTxtFontSize);

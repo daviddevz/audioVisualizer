@@ -1,8 +1,6 @@
 #pragma once
 #include "buttons/upload.hpp"
 #include "scene/scene.hpp"
-//#include "audio processing/audioFileHandling.hpp"
-//#include <filesystem>
 
 class SelectVisual : public Scene{
 public:
@@ -13,13 +11,10 @@ public:
 
     // Set all the scene object ready to be drawn
     void load(sf::RenderWindow& window) override{
+        loadFont(font);
         
         winDim = {window.getSize().x , window.getSize().y};
         buttWindDim = {static_cast<float>(winDim.width), static_cast<float>(winDim.height)};
-
-        if(!font.loadFromFile("..\\font\\ARIAL.TTF")){
-            throw std::runtime_error("Failed to load font in selectVisual class");
-        }
        
         waveform = new UploadButton(sf::Vector2f(buttWindDim.width, buttWindDim.height), font,
         buttTxt[0], sf::Vector2f(buttDim[0].width, buttDim[0].height), buttTxtFontSize);

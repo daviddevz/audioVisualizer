@@ -1,8 +1,4 @@
 #pragma once
-#include <iostream>
-#include <string>
-#include "SFML/Window.hpp"
-#include "SFML/Graphics.hpp"
 #include "visualization/renderText.hpp"
 
 
