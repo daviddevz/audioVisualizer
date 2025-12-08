@@ -16,11 +16,11 @@ public:
     SkipBackward* skipBackwardButton;
     MusicDuration* musicDurationBar;
     
-    MusicPlayer(const sf::Vector2f windowDimension, const sf::Font& font){
+    MusicPlayer(const sf::Vector2f windowDimension, const sf::Font& font, const sf::Time& totalDuration_){
         playPauseButton = new PlayPause(windowDimension, font);
         skipForwardButton = new SkipForward(windowDimension, font);
         skipBackwardButton = new SkipBackward(windowDimension, font);
-        musicDurationBar = new MusicDuration(windowDimension, font);
+        musicDurationBar = new MusicDuration(windowDimension, font, totalDuration_);
     };
 
     void clickActions(sf::RenderWindow& window){
@@ -81,7 +81,7 @@ public:
     }
 
     void getMusicDuration(sf::Time& currDuration, const sf::Time& totalDuration){
-        musicDurationBar -> setMusicDuration(currDuration, totalDuration);
+        musicDurationBar -> setMusicDuration(currDuration);
     }
 
     ~MusicPlayer(){

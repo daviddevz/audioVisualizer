@@ -20,10 +20,14 @@ public:
     void load(sf::RenderWindow& window) override {
         loadMusic();
         loadFont(font);
+
+        // Instantiate AudioProcessing
+        std::unique_ptr<AudioProcessing> audioProcessing = std::make_unique<AudioProcessing>(filePath_);
+
         // Instantiate MusicPlayer
         windowDimension_.x = static_cast<float>(window.getSize().x);
         windowDimension_.y = static_cast<float>(window.getSize().y);
-        musicPlayer = new MusicPlayer(windowDimension_, font);
+        musicPlayer = new MusicPlayer(windowDimension_, font, audioProcessing -> getTotalMusicDuration());
     };
 
     void render(sf::RenderWindow& window) override {
@@ -34,12 +38,21 @@ public:
             currentMusicDuration = sf::Time::Zero;
         }
 
+        /* if (audioProcessing -> getStatus() == sf::Music::Stopped){
+            musicPlayer -> musicEndAction();
+            audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
+        } */
+
         if (music.getStatus() == sf::Music::Playing && !isPaused){
             currentMusicDuration += clock.restart();
         }
-        
-        musicPlayer -> getMusicDuration(currentMusicDuration, music.getDuration());
 
+        /* if (audioProcessing -> getStatus() == sf::Music::Playing && !(audioProcessing -> getIsPaused())){
+            audioProcessing -> updateCurrentMusicDuration((audioProcessing -> getCurrenMusicDuration())
+                                                        + clock.restart());
+        } */
+
+        musicPlayer -> getMusicDuration(currentMusicDuration, music.getDuration());
     };
 
     void clickActions(sf::RenderWindow& window) override {
@@ -59,7 +72,6 @@ public:
         else{
             music.pause();
             isPaused = true;
-            
         }
 
         if (musicPlayer -> isSkipForward()){
@@ -119,9 +131,7 @@ public:
     }
     
     ~Visualization() {
-        delete audioProcessing;
         delete musicPlayer;
-        delete waveGeneration;
     };
 
 private:

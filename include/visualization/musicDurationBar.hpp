@@ -9,9 +9,10 @@ public:
     static const sf::Color backgroundColor;
     static const sf::Color maskedColor;
 
-    MusicDuration(sf::Vector2f windowDimension, const sf::Font& font_): 
+    MusicDuration(sf::Vector2f windowDimension, const sf::Font& font_, const sf::Time& totalDuration_): 
     ProgressBar({windowDimension.x * (windowDimension.x - shapeDimension.x) / (2.0f * windowDimension.x),
-    windowDimension.y * 0.80f}, backgroundColor, maskedColor, shapeDimension), font(font_) {};
+    windowDimension.y * 0.80f}, backgroundColor, maskedColor, shapeDimension), font(font_),
+    totalDuration(totalDuration_){};
     
 
     std::string secondToHHMMSS(sf::Time& time){
@@ -45,8 +46,10 @@ public:
         return HHMMSS;
     }
 
-    void setMusicDuration (sf::Time& currDuration_, const sf::Time& totalDuration_){
-        currDuration = currDuration_, totalDuration = totalDuration_;
+    //void setMusicDuration (sf::Time& currDuration_, const sf::Time& totalDuration_)
+    void setMusicDuration (sf::Time& currDuration_){
+        currDuration = currDuration_; 
+        //totalDuration = totalDuration_;
 
         updateProgressBar(currDuration.asSeconds() / totalDuration.asSeconds());
     }

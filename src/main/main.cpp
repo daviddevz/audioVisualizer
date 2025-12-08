@@ -1,3 +1,4 @@
+#define MINIAUDIO_IMPLEMENTATION
 #include "audioVisualizer.hpp"
 
 int main(){

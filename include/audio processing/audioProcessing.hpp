@@ -17,21 +17,39 @@ extern "C" {
     The music playing function will be tied to MusicPlayer class for music playing animation and 
     the decoding function will be used for wave generation of PCM data or frequency.
 */
-class AudioProcessing: public sf::SoundStream{
+class AudioProcessing: public sf::Music{
 public:
     AudioProcessing(const std::string& filePath){
         loadAudioFile(filePath);
-        queryDecoder();
+        //queryDecoder();
     };
 
     // Initialize decoder and pass the file path
     void loadAudioFile(const std::string& filePath) {
+        // SFML
+        if (!music.openFromFile(filePath)){
+            throw std::runtime_error("filePath not found");
+        }
+
+        // Miniaudio
         const char* filePath_ = filePath.c_str(); // Convert std::string to C-style string
-        ma_result result = ma_decoder_init_file(filePath_, NULL, &decoder);
+        result = ma_decoder_init_file(filePath_, NULL, &decoder);
         if (result != MA_SUCCESS) {
             throw std::runtime_error("Could not load file");
         }
     }
+
+    sf::SoundSource::Status getStatus(){return music.getStatus();}
+
+    sf::Time getCurrenMusicDuration(){return currentMusicDuration;}
+
+    void updateCurrentMusicDuration(sf::Time time){currentMusicDuration = time;}
+
+    sf::Time getTotalMusicDuration(){return music.getDuration();}
+
+    bool getIsPaused(){return isPaused;}
+
+    void setIsPaused(bool flag){isPaused = flag;}
 
     // Query decoder for output format, sample rate and channel count
     void queryDecoder(){
@@ -126,18 +144,16 @@ public:
     }
 
     ~AudioProcessing(){
-        delete[] framesOut;
+        //delete[] framesOut;
 
-        if (convert_f32_to_s16_flag){
+        /* if (convert_f32_to_s16_flag){
             delete[] s16PtrCopy; // deallocate last samples not deallocated in onGetData
-        }
+        } */
         //delete[] audioChunk.samples; // delete allocated memory returned by convert_f32_to_s16(...)
-        ma_decoder_uninit(&decoder);
+        //ma_decoder_uninit(&decoder);
     };
 
 private:
-    ma_uint32 SAMPLE_RATE; // Hz or samples per second = 44100 or 48000
-    ma_uint32 CHANNELS;
     const uint16_t FRAMES = 1024; // Samples per channel
     uint64_t SAMPLE_COUNT; // FRAMES x CHANNELS
 
@@ -147,10 +163,18 @@ private:
     sf::Int16* s16PtrCopy;
     bool convert_f32_to_s16_flag = false; 
     
-
+    // Miniaudio
+    ma_uint32 SAMPLE_RATE; // Hz or samples per second = 44100 or 48000
+    ma_uint32 CHANNELS;
     ma_decoder decoder;
     ma_result result;
     ma_format format; // struct: ma_format_f32 = 5 (32 bit float), ma_format_s16 = 2 (16 bit int)
     ma_channel channelMap[MA_MAX_CHANNELS]; // maps out channel. MA_MAX_CHANNELS = 254
+
+    // SFML
+    sf::Music music;
+    sf::Time currentMusicDuration = sf::Time::Zero;
+    sf::Clock clock;
+    bool isPaused = false;
 };
 
