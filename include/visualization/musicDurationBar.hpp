@@ -47,10 +47,8 @@ public:
     }
 
     //void setMusicDuration (sf::Time& currDuration_, const sf::Time& totalDuration_)
-    void setMusicDuration (sf::Time& currDuration_){
-        currDuration = currDuration_; 
-        //totalDuration = totalDuration_;
-
+    void setMusicDuration (sf::Time currDuration_){
+        currDuration = currDuration_;
         updateProgressBar(currDuration.asSeconds() / totalDuration.asSeconds());
     }
 

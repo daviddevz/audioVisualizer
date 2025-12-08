@@ -59,30 +59,20 @@ public:
         return false;
     }
 
-    bool isSkipForward(){
-        return skipForward;
-    }
+    bool isSkipForward(){return skipForward;}
 
-    void resetSkipForward(){
-        skipForward = false;
-    }
+    void resetSkipForward(){skipForward = false;}
     
-    bool isSkipBackward(){
-        return skipBackward;
-    }
+    bool isSkipBackward(){return skipBackward;}
 
-    void resetSkipBackward(){
-        skipBackward = false;
-    }
+    void resetSkipBackward(){skipBackward = false;}
 
     void musicEndAction(){
         playPauseButton -> setButtonType(0);
         playMusic = false;
     }
 
-    void getMusicDuration(sf::Time& currDuration, const sf::Time& totalDuration){
-        musicDurationBar -> setMusicDuration(currDuration);
-    }
+    void getMusicDuration(sf::Time currDuration){musicDurationBar -> setMusicDuration(currDuration);}
 
     ~MusicPlayer(){
         delete playPauseButton;

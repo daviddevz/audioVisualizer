@@ -32,14 +32,14 @@ public:
         }
 
         // Miniaudio
-        const char* filePath_ = filePath.c_str(); // Convert std::string to C-style string
+        /* const char* filePath_ = filePath.c_str(); // Convert std::string to C-style string
         result = ma_decoder_init_file(filePath_, NULL, &decoder);
         if (result != MA_SUCCESS) {
             throw std::runtime_error("Could not load file");
-        }
+        } */
     }
 
-    sf::SoundSource::Status getStatus(){return music.getStatus();}
+    sf::SoundSource::Status getMusicStatus(){return music.getStatus();}
 
     sf::Time getCurrenMusicDuration(){return currentMusicDuration;}
 
@@ -50,6 +50,14 @@ public:
     bool getIsPaused(){return isPaused;}
 
     void setIsPaused(bool flag){isPaused = flag;}
+
+    void playMusic(){music.play();};
+    
+    void pauseMusic(){music.pause();}; 
+
+    void setMusicPlayingOffset () {music.setPlayingOffset(currentMusicDuration);};
+    
+    sf::Time restartClock(){return clock.restart();};
 
     // Query decoder for output format, sample rate and channel count
     void queryDecoder(){
@@ -174,7 +182,7 @@ private:
     // SFML
     sf::Music music;
     sf::Time currentMusicDuration = sf::Time::Zero;
-    sf::Clock clock;
     bool isPaused = false;
+    sf::Clock clock;
 };
 

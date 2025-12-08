@@ -9,20 +9,21 @@
 
 class Visualization : public Scene {
 public:
-    bool isPaused = false;
+    //bool isPaused = false;
 
-    AudioProcessing* audioProcessing;
+    //AudioProcessing* audioProcessing;
+    std::unique_ptr<AudioProcessing> audioProcessing;
     MusicPlayer* musicPlayer;
     WaveGeneration* waveGeneration;
     
     Visualization() = default;
 
     void load(sf::RenderWindow& window) override {
-        loadMusic();
+        //loadMusic();
         loadFont(font);
 
         // Instantiate AudioProcessing
-        std::unique_ptr<AudioProcessing> audioProcessing = std::make_unique<AudioProcessing>(filePath_);
+        audioProcessing = std::make_unique<AudioProcessing>(filePath_);
 
         // Instantiate MusicPlayer
         windowDimension_.x = static_cast<float>(window.getSize().x);
@@ -32,34 +33,35 @@ public:
 
     void render(sf::RenderWindow& window) override {
         musicPlayer -> render(window);
-
-        if (music.getStatus() == sf::Music::Stopped){
+        /* if (music.getStatus() == sf::Music::Stopped){
             musicPlayer -> musicEndAction();
             currentMusicDuration = sf::Time::Zero;
-        }
+        } */
 
-        /* if (audioProcessing -> getStatus() == sf::Music::Stopped){
+        if (audioProcessing -> getMusicStatus() == sf::Music::Stopped){
             musicPlayer -> musicEndAction();
             audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
-        } */
-
-        if (music.getStatus() == sf::Music::Playing && !isPaused){
-            currentMusicDuration += clock.restart();
         }
 
-        /* if (audioProcessing -> getStatus() == sf::Music::Playing && !(audioProcessing -> getIsPaused())){
-            audioProcessing -> updateCurrentMusicDuration((audioProcessing -> getCurrenMusicDuration())
-                                                        + clock.restart());
+        /* if (music.getStatus() == sf::Music::Playing && !isPaused){
+            currentMusicDuration += clock.restart();
         } */
 
-        musicPlayer -> getMusicDuration(currentMusicDuration, music.getDuration());
+        if (audioProcessing -> getMusicStatus() == sf::Music::Playing
+            && !(audioProcessing -> getIsPaused())){
+            audioProcessing -> updateCurrentMusicDuration((audioProcessing -> getCurrenMusicDuration())
+                                                        + audioProcessing -> restartClock());
+        }
+
+        //musicPlayer -> getMusicDuration(currentMusicDuration);
+        musicPlayer -> getMusicDuration(audioProcessing -> getCurrenMusicDuration());
     };
 
     void clickActions(sf::RenderWindow& window) override {
         musicPlayer -> clickActions(window);
         
         if (musicPlayer -> isMusicPaused() == false){
-            if (music.getStatus() != sf::Music::Playing){
+            /* if (music.getStatus() != sf::Music::Playing){
                 music.play();
                 
                 if (isPaused) {
@@ -67,16 +69,32 @@ public:
                 }
                 clock.restart();
                 isPaused = false;
+            } */
+
+            if (audioProcessing -> getMusicStatus() != sf::Music::Playing){
+                //music.play();
+                audioProcessing -> playMusic();
+                
+                if (audioProcessing -> getIsPaused()) {
+                    audioProcessing -> setMusicPlayingOffset(); 
+                }
+                //clock.restart();
+                //isPaused = false;
+                audioProcessing -> restartClock();
+                audioProcessing -> setIsPaused(false);
             }
         }
         else{
-            music.pause();
-            isPaused = true;
+            //music.pause();
+            //isPaused = true;
+
+            audioProcessing -> pauseMusic();
+            audioProcessing -> setIsPaused(true);
         }
 
         if (musicPlayer -> isSkipForward()){
-            if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                sf::Time timeOffset = sf::seconds(2.0f);
+            /* if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
+                //sf::Time timeOffset = sf::seconds(2.0f);
 
                 if ((currentMusicDuration + timeOffset) > music.getDuration()){
                     currentMusicDuration = music.getDuration();
@@ -86,12 +104,28 @@ public:
                 }
                 music.setPlayingOffset(currentMusicDuration); 
                 musicPlayer -> resetSkipForward();
+            } */
+
+            if (audioProcessing -> getMusicStatus() != sf::Music::Playing
+            || audioProcessing -> getMusicStatus() != sf::Music::Paused){
+                if (((audioProcessing -> getCurrenMusicDuration()) + timeOffset)
+                > audioProcessing -> getTotalMusicDuration()){
+                    //currentMusicDuration = music.getDuration();
+                    audioProcessing -> updateCurrentMusicDuration(audioProcessing -> getTotalMusicDuration());
+                }
+                else{
+                    //currentMusicDuration += timeOffset;
+                    audioProcessing -> updateCurrentMusicDuration((audioProcessing -> getCurrenMusicDuration()) + timeOffset);
+                }
+                //music.setPlayingOffset(currentMusicDuration); 
+                audioProcessing -> setMusicPlayingOffset();
+                musicPlayer -> resetSkipForward();
             }
         }
         
         if (musicPlayer -> isSkipBackward() == true){
-            if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
-                sf::Time timeOffset = sf::seconds(2.0f);
+            /* if (music.getStatus() != sf::Music::Playing || music.getStatus() != sf::Music::Paused){
+                //sf::Time timeOffset = sf::seconds(2.0f);
 
                 if ((currentMusicDuration - timeOffset) < sf::Time::Zero){
                     currentMusicDuration = sf::Time::Zero;
@@ -100,6 +134,21 @@ public:
                     currentMusicDuration -= timeOffset;
                 }
                 music.setPlayingOffset(currentMusicDuration);
+                musicPlayer -> resetSkipBackward();
+            } */
+
+            if (audioProcessing -> getMusicStatus() != sf::Music::Playing
+            || audioProcessing -> getMusicStatus() != sf::Music::Paused){
+                if (((audioProcessing -> getCurrenMusicDuration()) - timeOffset) < sf::Time::Zero){
+                    //currentMusicDuration = sf::Time::Zero;
+                    audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
+                }
+                else{
+                    //currentMusicDuration -= timeOffset;
+                    audioProcessing -> updateCurrentMusicDuration((audioProcessing -> getCurrenMusicDuration()) - timeOffset);
+                }
+                //music.setPlayingOffset(currentMusicDuration);
+                audioProcessing -> setMusicPlayingOffset();
                 musicPlayer -> resetSkipBackward();
             }
         }
@@ -124,11 +173,11 @@ public:
         filePath_ = filePath;
     }
 
-    void loadMusic() {
+    /* void loadMusic() {
         if (!music.openFromFile(filePath_)){
             throw std::runtime_error("filePath not found");
         }
-    }
+    } */
     
     ~Visualization() {
         delete musicPlayer;
@@ -138,9 +187,10 @@ private:
     sf::Vector2f windowDimension_;
     sf::Font font;
     std::string filePath_;
-    sf::Music music;
-    sf::Time currentMusicDuration = sf::Time::Zero;
-    sf::Clock clock;
+    //sf::Music music;
+    //sf::Time currentMusicDuration = sf::Time::Zero;
+    //sf::Clock clock;
+    sf::Time timeOffset = sf::seconds(2.0f);
 
     std::vector<std::vector<float>> normalizedAudioSample; // stores audio samples(inner vector) in different channels (outer vector)
 };
