@@ -6,10 +6,8 @@
 class AudioVisualizer{
 public:
     AudioVisualizer() = default;;
-
     void loadWindow();
     void startAudioVisualizer();
-
     ~AudioVisualizer() = default;
 
 private:
