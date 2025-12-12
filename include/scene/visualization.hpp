@@ -10,8 +10,8 @@
 class Visualization : public Scene {
     public:
         std::unique_ptr<AudioProcessing> audioProcessing;
-        MusicPlayer* musicPlayer;
-        WaveGeneration* waveGeneration;
+        std::unique_ptr<MusicPlayer> musicPlayer;
+        std::unique_ptr<WaveGeneration> waveGeneration;
         
         Visualization() = default;
 
@@ -22,7 +22,7 @@ class Visualization : public Scene {
 
             windowDimension_.x = static_cast<float>(window.getSize().x);
             windowDimension_.y = static_cast<float>(window.getSize().y);
-            musicPlayer = new MusicPlayer(windowDimension_, font,
+            musicPlayer = std::make_unique<MusicPlayer>(windowDimension_, font,
             audioProcessing -> getTotalMusicDuration());
         };
 
@@ -32,9 +32,7 @@ class Visualization : public Scene {
                 audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
             }
 
-            if (audioProcessing -> getMusicStatus() == sf::Music::Playing
-                && !(audioProcessing -> getIsPaused())){
-
+            if (audioProcessing -> getMusicStatus() == sf::Music::Playing){ 
                 audioProcessing -> updateCurrentMusicDuration(
                     (audioProcessing -> getCurrenMusicDuration())
                     + audioProcessing -> restartClock());
@@ -47,66 +45,65 @@ class Visualization : public Scene {
             musicPlayer -> getMusicDuration(audioProcessing -> getCurrenMusicDuration());
         };
 
-        // TO-DO: abstract out the if statatements in a function
-        void clickActions(sf::RenderWindow& window) override {
-            musicPlayer -> clickActions(window);
-            
-            if (musicPlayer -> isMusicPaused() == false){
+        void clickPause(){
+            if (musicPlayer -> isMusicPaused()){
+                audioProcessing -> pauseMusic();
+            }
+            else{
+                /* The reason we can't check against sf::Music::Pause is because the music could
+                have stopped(after playing or in the beginning) or it is paused */ 
                 if (audioProcessing -> getMusicStatus() != sf::Music::Playing){
                     audioProcessing -> playMusic();
                     
-                    if (audioProcessing -> getIsPaused()) {
-                        audioProcessing -> setMusicPlayingOffset(); 
-                    }
+                    /*SFML setPlayingOffset: Changing the playing position when the stream is
+                    stopped has no effect, since playing the stream would reset its position.
+                    The codeblock tells SFML where to start playing the audio*/
+                    audioProcessing -> setMusicPlayingOffset();
 
                     audioProcessing -> restartClock();
-                    audioProcessing -> setIsPaused(false);
                 }
             }
-            else{
-                audioProcessing -> pauseMusic();
-                audioProcessing -> setIsPaused(true);
-            }
+        }
 
+        void clickSkipForward(){
             if (musicPlayer -> isSkipForward()){
-                if (audioProcessing -> getMusicStatus() != sf::Music::Playing
-                    || audioProcessing -> getMusicStatus() != sf::Music::Paused){
-                    
-                    if (((audioProcessing -> getCurrenMusicDuration()) + timeOffset)
-                        > audioProcessing -> getTotalMusicDuration()){
-
-                        audioProcessing -> updateCurrentMusicDuration(
-                            audioProcessing -> getTotalMusicDuration());
-                    }
-                    else{
-                        audioProcessing -> updateCurrentMusicDuration(
-                            (audioProcessing -> getCurrenMusicDuration()) + timeOffset);
-                    }
-
-                    audioProcessing -> setMusicPlayingOffset();
-                    musicPlayer -> resetSkipForward();
+                if (((audioProcessing -> getCurrenMusicDuration()) + timeOffset)
+                    <= audioProcessing -> getTotalMusicDuration()){
+                    audioProcessing -> updateCurrentMusicDuration(
+                        (audioProcessing -> getCurrenMusicDuration()) + timeOffset);
                 }
-            }
-            
-            if (musicPlayer -> isSkipBackward() == true){
-
-                if (audioProcessing -> getMusicStatus() != sf::Music::Playing
-                    || audioProcessing -> getMusicStatus() != sf::Music::Paused){
-
-                    if (((audioProcessing -> getCurrenMusicDuration()) - timeOffset)
-                        < sf::Time::Zero){
-
-                        audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
-                    }
-                    else{
-                        audioProcessing -> updateCurrentMusicDuration(
-                            (audioProcessing -> getCurrenMusicDuration()) - timeOffset);
-                    }
-
-                    audioProcessing -> setMusicPlayingOffset();
-                    musicPlayer -> resetSkipBackward();
+                else{
+                    audioProcessing -> updateCurrentMusicDuration(
+                        audioProcessing -> getTotalMusicDuration());
                 }
+
+                audioProcessing -> setMusicPlayingOffset();
+                musicPlayer -> resetSkipForward();
             }
+        }
+
+        void clickSkipBackward(){
+            if (musicPlayer -> isSkipBackward()){
+                if (((audioProcessing -> getCurrenMusicDuration()) - timeOffset)
+                    < sf::Time::Zero){
+
+                    audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
+                }
+                else{
+                    audioProcessing -> updateCurrentMusicDuration(
+                        (audioProcessing -> getCurrenMusicDuration()) - timeOffset);
+                }
+
+                audioProcessing -> setMusicPlayingOffset();
+                musicPlayer -> resetSkipBackward();
+            }
+        }
+
+        void clickActions(sf::RenderWindow& window) override {
+            musicPlayer -> clickActions(window);
+            clickPause();
+            clickSkipForward();
+            clickSkipBackward();
         }
 
         void cursorActions(sf::RenderWindow& window, sf::RenderTarget& target) override {
@@ -125,9 +122,7 @@ class Visualization : public Scene {
             filePath_ = filePath;
         }
         
-        ~Visualization() {
-            delete musicPlayer;
-        };
+        ~Visualization() = default;
 
     private:
         sf::Vector2f windowDimension_;

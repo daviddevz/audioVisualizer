@@ -19,10 +19,7 @@ extern "C" {
 */
 class AudioProcessing: public sf::Music{
 public:
-    AudioProcessing(const std::string& filePath){
-        loadAudioFile(filePath);
-        //queryDecoder();
-    };
+    AudioProcessing(const std::string& filePath){loadAudioFile(filePath);};
 
     // Initialize decoder and pass the file path
     void loadAudioFile(const std::string& filePath) {
@@ -32,31 +29,21 @@ public:
         }
 
         // Miniaudio
-        /* const char* filePath_ = filePath.c_str(); // Convert std::string to C-style string
+        const char* filePath_ = filePath.c_str(); // Convert std::string to C-style string
         result = ma_decoder_init_file(filePath_, NULL, &decoder);
         if (result != MA_SUCCESS) {
             throw std::runtime_error("Could not load file");
-        } */
+        }
     }
 
+    // Music Streaming Operations
     sf::SoundSource::Status getMusicStatus(){return music.getStatus();}
-
     sf::Time getCurrenMusicDuration(){return currentMusicDuration;}
-
     void updateCurrentMusicDuration(sf::Time time){currentMusicDuration = time;}
-
     sf::Time getTotalMusicDuration(){return music.getDuration();}
-
-    bool getIsPaused(){return isPaused;}
-
-    void setIsPaused(bool flag){isPaused = flag;}
-
     void playMusic(){music.play();};
-    
     void pauseMusic(){music.pause();}; 
-
     void setMusicPlayingOffset () {music.setPlayingOffset(currentMusicDuration);};
-    
     sf::Time restartClock(){return clock.restart();};
 
     // Query decoder for output format, sample rate and channel count
@@ -158,7 +145,7 @@ public:
             delete[] s16PtrCopy; // deallocate last samples not deallocated in onGetData
         } */
         //delete[] audioChunk.samples; // delete allocated memory returned by convert_f32_to_s16(...)
-        //ma_decoder_uninit(&decoder);
+        ma_decoder_uninit(&decoder);
     };
 
 private:
@@ -182,7 +169,6 @@ private:
     // SFML
     sf::Music music;
     sf::Time currentMusicDuration = sf::Time::Zero;
-    bool isPaused = false;
     sf::Clock clock;
 };
 

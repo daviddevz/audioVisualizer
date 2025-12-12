@@ -9,6 +9,7 @@ class MusicPlayer{
 private:
     //const std::string filePath_;
     bool playMusic = false, skipForward = false, skipBackward = false;
+    
 
 public:
     PlayPause* playPauseButton;
@@ -68,7 +69,7 @@ public:
     void resetSkipBackward(){skipBackward = false;}
 
     void musicEndAction(){
-        playPauseButton -> setButtonType(0);
+        playPauseButton -> setButtonType(0); // 1 = pause button, 0 = play button
         playMusic = false;
     }
 
