@@ -22,5 +22,6 @@ public:
     }
 
     virtual void setFilePath(const std::string& filePath_){};
+    virtual void setVisual(const std::string& filePath_){};
     virtual ~Scene() = default;
 };

@@ -66993,7 +66993,7 @@ MA_API ma_result ma_decoder_init_file(const char* pFilePath, const ma_decoder_co
 {
     ma_result result;
     ma_decoder_config config;
-
+    
     config = ma_decoder_config_init_copy(pConfig);
     result = ma_decoder__preinit_file(pFilePath, &config, pDecoder);
     if (result != MA_SUCCESS) {

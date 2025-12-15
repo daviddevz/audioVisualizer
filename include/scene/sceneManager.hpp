@@ -6,10 +6,10 @@
 
 class SceneManager{
     private:
-        Scene* currentScene; // Will be used for runtime polymorphism Base ptr = New Derived
+        Scene* currentScene;
         SceneRegistry* sceneRegistry = new SceneRegistry();
         std::vector<std::string> sceneIds = sceneRegistry -> getSceneIds();
-        std::string lastSceneId, filePath;
+        std::string lastSceneId, filePath, typeOfVisual;
         int sceneIdx = 0;
 
     public:
@@ -30,6 +30,7 @@ class SceneManager{
             else{
                 if (sceneId == sceneIds[2]){ 
                     currentScene -> setFilePath(filePath);
+                    currentScene -> setVisual(typeOfVisual);
                 }
 
                 currentScene -> load(window);
@@ -45,6 +46,10 @@ class SceneManager{
         void clickActions(sf::RenderWindow& window){
             if (currentScene != nullptr){
                 currentScene -> clickActions(window);
+            }
+
+            if (lastSceneId == sceneIds[1]){
+                typeOfVisual = currentScene -> getTypeOfVisual();
             }
         }
 
@@ -66,7 +71,6 @@ class SceneManager{
             else{
                 unloadScenes();
                 setScene(sceneId);
-                
                 loadScene(sceneId, window);
             }
 

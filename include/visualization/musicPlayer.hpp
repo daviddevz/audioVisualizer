@@ -73,7 +73,7 @@ public:
         playMusic = false;
     }
 
-    void getMusicDuration(sf::Time currDuration){musicDurationBar -> setMusicDuration(currDuration);}
+    void setMusicDuration(sf::Time currDuration){musicDurationBar -> setMusicDuration(currDuration);}
 
     ~MusicPlayer(){
         delete playPauseButton;

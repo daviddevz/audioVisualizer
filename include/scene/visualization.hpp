@@ -18,7 +18,7 @@ class Visualization : public Scene {
         void load(sf::RenderWindow& window) override {
             loadFont(font);
 
-            audioProcessing = std::make_unique<AudioProcessing>(filePath_);
+            audioProcessing = std::make_unique<AudioProcessing>(filePath_, message);
 
             windowDimension_.x = static_cast<float>(window.getSize().x);
             windowDimension_.y = static_cast<float>(window.getSize().y);
@@ -42,7 +42,7 @@ class Visualization : public Scene {
         void render(sf::RenderWindow& window) override {
             musicPlayer -> render(window);
             musicStatusRenderUpdate();
-            musicPlayer -> getMusicDuration(audioProcessing -> getCurrenMusicDuration());
+            musicPlayer -> setMusicDuration(audioProcessing -> getCurrenMusicDuration());
         };
 
         void clickPause(){
@@ -118,17 +118,28 @@ class Visualization : public Scene {
             return "";
         } */
 
-        void setFilePath(const std::string& filePath) override {
+        void setFilePath(const std::string& filePath) override{
             filePath_ = filePath;
         }
         
+        void setVisual(const std::string& visual){
+            typeOfVisual = visual;
+            if(typeOfVisual == "WAVEFORM"){
+                message = 0;
+            }
+            else if (typeOfVisual == "SPECTROGRAM"){
+                message = 1;
+            }
+        }
+
         ~Visualization() = default;
 
     private:
         sf::Vector2f windowDimension_;
         sf::Font font;
-        std::string filePath_;
+        std::string filePath_, typeOfVisual;
         sf::Time timeOffset = sf::seconds(2.0f);
+        uint16_t message = 0;
 
         // stores audio samples(inner vector) in different channels (outer vector)
         std::vector<std::vector<float>> normalizedAudioSample; 
