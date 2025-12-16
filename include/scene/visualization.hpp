@@ -9,11 +9,7 @@
 
 class Visualization : public Scene {
     public:
-        std::unique_ptr<AudioProcessing> audioProcessing;
-        std::unique_ptr<MusicPlayer> musicPlayer;
-        std::unique_ptr<WaveGeneration> waveGeneration;
-        
-        Visualization() = default;
+        Visualization():timeOffset(sf::seconds(2.0f)){};
 
         void load(sf::RenderWindow& window) override {
             loadFont(font);
@@ -138,9 +134,10 @@ class Visualization : public Scene {
         sf::Vector2f windowDimension_;
         sf::Font font;
         std::string filePath_, typeOfVisual;
-        sf::Time timeOffset = sf::seconds(2.0f);
-        uint16_t message = 0;
+        sf::Time timeOffset;
+        uint16_t message;
 
-        // stores audio samples(inner vector) in different channels (outer vector)
-        std::vector<std::vector<float>> normalizedAudioSample; 
+        std::unique_ptr<AudioProcessing> audioProcessing;
+        std::unique_ptr<MusicPlayer> musicPlayer;
+        std::unique_ptr<WaveGeneration> waveGeneration;
 };

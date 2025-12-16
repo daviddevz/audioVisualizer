@@ -21,10 +21,16 @@ extern "C" {
 */
 class AudioProcessing: public sf::Music{
     public:
-        AudioProcessing(const std::string& filePath, uint16_t message){
+        AudioProcessing(const std::string& filePath, uint16_t message):frames(1024){
+            currentMusicDuration = sf::Time::Zero;
+            quitControlMusicState = 1 << 5;
+            typeOfVisual = message;
+
             loadAudioFile(filePath);
             queryDecoder();
-            messageQueue.push(message); //Test
+
+            uint16_t clearBit = 0;
+            messageQueue.push(message & clearBit);
 
             controlMusicState = std::thread(&AudioProcessing::controlLoop, this,
                 std::ref(messageQueue), sampleBuffer, std::ref(currentMusicDuration));
@@ -91,12 +97,12 @@ class AudioProcessing: public sf::Music{
                 2. Time driven thread that handles PCM extraction, FFT and waveform preperation
         */
         
-        void pushMessageToQueue(uint16_t message){
+        void sendMusicSateToQueue(uint16_t message){
             messageQueue.push(message);
         }
 
         ~AudioProcessing(){
-            messageQueue.push(quit);
+            messageQueue.push(quitControlMusicState);
             if(controlMusicState.joinable()){
                 controlMusicState.join();
             }
@@ -105,7 +111,7 @@ class AudioProcessing: public sf::Music{
         };
 
     private:
-        const ma_uint64 frames = 1024; // Samples per channel
+        const ma_uint64 frames; // Samples per channel
         ma_uint64 maxSampleCount; // FRAMES x CHANNELS
         std::shared_ptr<std::vector<float>> sampleBuffer; // pointer to an vector of interleaved samples
         
@@ -118,13 +124,13 @@ class AudioProcessing: public sf::Music{
 
         // SFML
         sf::Music music;
-        sf::Time currentMusicDuration = sf::Time::Zero;
+        sf::Time currentMusicDuration;
         sf::Clock clock;
+        uint16_t typeOfVisual, quitControlMusicState;
 
         // Threads
         /* Messages
-            Waveform: 0
-            Spectrogram: 1
+            Entry: 0
             Music Stopped: 1 << 1
             Music Playing: 1 << 2
             Music Paused: 1 << 3
@@ -133,19 +139,15 @@ class AudioProcessing: public sf::Music{
         */
         ThreadSafeQueue<uint16_t> messageQueue;
         std::thread controlMusicState;
-        uint16_t quit = 1 << 5;
-
+        
         void controlLoop(ThreadSafeQueue<uint16_t>& queue, std::shared_ptr<std::vector<float>> audioBuffer,
             sf::Time& duration){
-            const uint16_t WAVE_MUSIC_STOP = 1 << 1;
-            const uint16_t WAVE_MUSIC_PLAY = 1 << 2;
-            const uint16_t WAVE_MUSIC_PAUSE = 1 << 3;
-            const uint16_t WAVE_MUSIC_SEEK = 1 << 4;
+            const uint16_t ENTRY = 0;
+            const uint16_t MUSIC_STOPPED = 1 << 1;
+            const uint16_t MUSIC_PLAYING = 1 << 2;
+            const uint16_t MUSIC_PAUSED = 1 << 3;
+            const uint16_t MUSIC_SEEK = 1 << 4;
             const uint16_t QUIT = 1 << 5;
-            const uint16_t SPECT_MUSIC_STOP = 1 | 1 << 1;
-            const uint16_t SPECT_MUSIC_PLAY = 1 | 1 << 2;
-            const uint16_t SPECT_MUSIC_PAUSE = 1 | 1 << 3;
-            const uint16_t SPECT_MUSIC_SEEK = 1 | 1 << 4;
 
             uint16_t message = 0;
             uint16_t& msgRef = message;
@@ -154,38 +156,22 @@ class AudioProcessing: public sf::Music{
                 queue.waitAndPop(msgRef);
 
                 switch (message){
-                /* WAVEFORM CASES*/
-                    case (WAVE_MUSIC_STOP):
+                    case (ENTRY):
+                        /* Extract two 512 frames using extract function using callback function*/
+                        break;
+                    case (MUSIC_STOPPED):
+                        break;
+                    case (MUSIC_PLAYING):
                         /* code */
                         break;
-                    case (WAVE_MUSIC_PLAY):
+                    case (MUSIC_PAUSED):
                         /* code */
                         break;
-                    case (WAVE_MUSIC_PAUSE):
+                    case (MUSIC_SEEK):
                         /* code */
                         break;
-                    case (WAVE_MUSIC_SEEK):
-                        /* code */
-                        break;
-
-                /* SPECTROGRAM CASES*/
-                    case (SPECT_MUSIC_STOP):
-                        /* code */
-                        break;
-                    case (SPECT_MUSIC_PLAY):
-                        /* code */
-                        break;
-                    case (SPECT_MUSIC_PAUSE):
-                        /* code */
-                        break;
-                    case (SPECT_MUSIC_SEEK):
-                        /* code */
-                        break;
-
-                /* Quit CASE*/
                     case (QUIT):
                         break;
-
                     default:
                         // Extract from default time
                         if (message){

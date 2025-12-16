@@ -7,13 +7,15 @@
 class SceneManager{
     private:
         Scene* currentScene;
-        SceneRegistry* sceneRegistry = new SceneRegistry();
-        std::vector<std::string> sceneIds = sceneRegistry -> getSceneIds();
+        SceneRegistry* sceneRegistry;
+        std::vector<std::string> sceneIds;
         std::string lastSceneId, filePath, typeOfVisual;
-        int sceneIdx = 0;
+        int sceneIdx;
 
     public:
-        SceneManager(sf::RenderWindow& window){
+        SceneManager(sf::RenderWindow& window):sceneIdx(0){
+            sceneRegistry = new SceneRegistry();
+            sceneIds = sceneRegistry -> getSceneIds();
             setScene(sceneIds[0]);
             loadScene(sceneIds[0], window);
         };
