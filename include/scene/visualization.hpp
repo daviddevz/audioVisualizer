@@ -26,6 +26,7 @@ class Visualization : public Scene {
             if (audioProcessing -> getMusicStatus() == sf::Music::Stopped){
                 musicPlayer -> musicEndAction();
                 audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
+                audioProcessing -> sendMusicSateToQueue(sf::Music::Stopped);
             }
 
             if (audioProcessing -> getMusicStatus() == sf::Music::Playing){ 

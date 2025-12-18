@@ -17,13 +17,16 @@ extern "C" {
 /*
     This class will stream audio from file for playing and decode audio for wave generation.
     The music playing function will be tied to MusicPlayer class for music playing animation and 
-    the decoding function will be used for wave generation of PCM data or frequency.
+        the decoding function will be used for wave generation of PCM data or frequency.
+    This class will extract two 512 frames at a time for visualization class. One 512 frame for
+        current time and the other for future time. This applies for seeking as well.
 */
 class AudioProcessing: public sf::Music{
     public:
         AudioProcessing(const std::string& filePath, uint16_t message):frames(1024){
             currentMusicDuration = sf::Time::Zero;
-            quitControlMusicState = 1 << 5;
+            lastExtractTime = sf::Time::Zero;
+            quitControlMusicState = 4;
             typeOfVisual = message;
 
             loadAudioFile(filePath);
@@ -32,8 +35,7 @@ class AudioProcessing: public sf::Music{
             uint16_t clearBit = 0;
             messageQueue.push(message & clearBit);
 
-            controlMusicState = std::thread(&AudioProcessing::controlLoop, this,
-                std::ref(messageQueue), sampleBuffer, std::ref(currentMusicDuration));
+            controlMusicState = std::thread(&AudioProcessing::controlLoop, this);//, std::ref(messageQueue), sampleBuffer, std::ref(currentMusicDuration));
         }
 
         // Initialize decoder and pass the file path
@@ -48,7 +50,7 @@ class AudioProcessing: public sf::Music{
 
             // only set output format but keeps default settings for channels and sample rate
             ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
-            result = ma_decoder_init_file(filePath_, &config, &decoder);
+            ma_result result = ma_decoder_init_file(filePath_, &config, &decoder);
 
             if (result != MA_SUCCESS) {
                 throw std::runtime_error("Could not load file");
@@ -67,7 +69,7 @@ class AudioProcessing: public sf::Music{
 
         // Miniaudio
         void queryDecoder(){
-            result = ma_data_source_get_data_format(&decoder, NULL, &channels, &sampleRate,
+            ma_result result = ma_data_source_get_data_format(&decoder, NULL, &channels, &sampleRate,
                 channelMap, MA_MAX_CHANNELS);
 
             if (result != MA_SUCCESS) {
@@ -75,18 +77,21 @@ class AudioProcessing: public sf::Music{
             }
 
             maxSampleCount = frames * static_cast<ma_uint64>(channels);
-            sampleBuffer = std::make_shared<std::vector<float>>(maxSampleCount);
+            sampleBuffer = std::shared_ptr<float[]>(new float[maxSampleCount], std::default_delete<float[]>());//(maxSampleCount);
         }
         
-        void extractChunks(sf::Time time = sf::seconds(0.0f)){
+        void extractChunks(){
             // If no time value is given start at 0
             void* tempBuffer = sampleBuffer.get();
             ma_uint64 framesRead = 0;
-            result = ma_data_source_read_pcm_frames(&decoder, tempBuffer, frames, &framesRead);
+            ma_result result = ma_data_source_read_pcm_frames(&decoder, tempBuffer, frames, &framesRead);
 
             if (result != MA_SUCCESS) {
                 throw std::runtime_error("Failed to read data");
             }
+
+            /* std::cout<<"\nFrames: \n";
+            [framesRead](std::shared_ptr<float []> arr){for(int i = 0; i<framesRead; ++i){std::cout<<arr[i]<<" ";}}(sampleBuffer); */
         }
         /*
             - Create two worker threads upon class instantiation to execute programe asynchronizely
@@ -113,18 +118,17 @@ class AudioProcessing: public sf::Music{
     private:
         const ma_uint64 frames; // Samples per channel
         ma_uint64 maxSampleCount; // FRAMES x CHANNELS
-        std::shared_ptr<std::vector<float>> sampleBuffer; // pointer to an vector of interleaved samples
+        std::shared_ptr<float[]> sampleBuffer; // pointer to an vector of interleaved samples
         
         // Miniaudio
         ma_uint32 sampleRate; // Hz or frames per second = 44100 or 48000
         ma_uint32 channels;
         ma_decoder decoder;
-        ma_result result;
         ma_channel channelMap[MA_MAX_CHANNELS]; // maps out channel. MA_MAX_CHANNELS = 254
 
         // SFML
         sf::Music music;
-        sf::Time currentMusicDuration;
+        sf::Time currentMusicDuration, lastExtractTime;
         sf::Clock clock;
         uint16_t typeOfVisual, quitControlMusicState;
 
@@ -140,52 +144,31 @@ class AudioProcessing: public sf::Music{
         ThreadSafeQueue<uint16_t> messageQueue;
         std::thread controlMusicState;
         
-        void controlLoop(ThreadSafeQueue<uint16_t>& queue, std::shared_ptr<std::vector<float>> audioBuffer,
-            sf::Time& duration){
-            const uint16_t ENTRY = 0;
-            const uint16_t MUSIC_STOPPED = 1 << 1;
-            const uint16_t MUSIC_PLAYING = 1 << 2;
-            const uint16_t MUSIC_PAUSED = 1 << 3;
-            const uint16_t MUSIC_SEEK = 1 << 4;
-            const uint16_t QUIT = 1 << 5;
+        void controlLoop(){//ThreadSafeQueue<uint16_t>& queue), std::shared_ptr<std::vector<float>> audioBuffer,
+            //sf::Time& duration){
+            const uint16_t MUSIC_STOPPED = sf::Music::Stopped;
+            const uint16_t MUSIC_PAUSED = sf::Music::Paused;
+            const uint16_t MUSIC_PLAYING = sf::Music::Playing;
+            const uint16_t MUSIC_SEEK = 3;
 
-            uint16_t message = 0;
+            uint16_t message = 0, musicStopMessageCounter = 0;
             uint16_t& msgRef = message;
 
             while(true){
-                queue.waitAndPop(msgRef);
+                messageQueue.waitAndPop(msgRef);
 
-                switch (message){
-                    case (ENTRY):
-                        /* Extract two 512 frames using extract function using callback function*/
-                        break;
-                    case (MUSIC_STOPPED):
-                        break;
-                    case (MUSIC_PLAYING):
-                        /* code */
-                        break;
-                    case (MUSIC_PAUSED):
-                        /* code */
-                        break;
-                    case (MUSIC_SEEK):
-                        /* code */
-                        break;
-                    case (QUIT):
-                        break;
-                    default:
-                        // Extract from default time
-                        if (message){
-                            /* SPECTROGRAM CASES*/
-                            std::cout<<"Test work for spectrogram\n";
-                        }
-                        else{
-                            /* WAVEFORM CASES*/
-                            std::cout<<"Test work for waveform\n";
-                        }
-                        break;
-                    }
-                
-                if (message & QUIT){
+                if(message == MUSIC_STOPPED && currentMusicDuration == sf::Time::Zero){
+                    if (musicStopMessageCounter >= 1){ continue;}
+                    extractChunks();
+                    ++musicStopMessageCounter;
+                }
+                else if(message == MUSIC_PLAYING || message == MUSIC_SEEK){
+                    extractChunks();
+                }
+                else if(message == MUSIC_PAUSED){
+                    continue;
+                }
+                else if(message == quitControlMusicState){
                     break;
                 }
             }
