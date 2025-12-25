@@ -9,30 +9,44 @@
 
 class Visualization : public Scene {
     public:
-        Visualization():timeOffset(sf::seconds(2.0f)){};
+        Visualization():timeOffset(sf::seconds(2.0f)), quit(4), seek(5){};
 
         void load(sf::RenderWindow& window) override {
             loadFont(font);
 
-            audioProcessing = std::make_unique<AudioProcessing>(filePath_, message);
+            audioProcessing = std::make_unique<AudioProcessing>(filePath_, message, quit, seek);
 
             windowDimension_.x = static_cast<float>(window.getSize().x);
             windowDimension_.y = static_cast<float>(window.getSize().y);
             musicPlayer = std::make_unique<MusicPlayer>(windowDimension_, font,
             audioProcessing -> getTotalMusicDuration());
+            
+            waveGeneration = std::make_unique<WaveGeneration>(message, quit, seek,
+                audioProcessing -> getFrames(), font, windowDimension_);
         };
 
         void musicStatusRenderUpdate(){
             if (audioProcessing -> getMusicStatus() == sf::Music::Stopped){
                 musicPlayer -> musicEndAction();
                 audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
-                audioProcessing -> sendMusicSateToQueue(sf::Music::Stopped);
+                audioProcessing -> sendMusicStateUpdate(sf::Music::Stopped);
+                /* waveGeneration -> setData(audioProcessing -> getMixDownBuffer(),
+                    audioProcessing -> getMaxMag()); */
+
+                waveGeneration -> sendMusicStateUpdate(sf::Music::Stopped,
+                    audioProcessing -> getMixDownBuffer(), audioProcessing -> getMaxMag());
             }
 
             if (audioProcessing -> getMusicStatus() == sf::Music::Playing){ 
                 audioProcessing -> updateCurrentMusicDuration(
                     (audioProcessing -> getCurrenMusicDuration())
                     + audioProcessing -> restartClock());
+                audioProcessing -> sendMusicStateUpdate(sf::Music::Playing);
+                /* waveGeneration -> setData(audioProcessing -> getMixDownBuffer(),
+                    audioProcessing -> getMaxMag()); */
+
+                waveGeneration -> sendMusicStateUpdate(sf::Music::Playing,
+                    audioProcessing -> getMixDownBuffer(), audioProcessing -> getMaxMag());
             }
         }
 
@@ -40,11 +54,15 @@ class Visualization : public Scene {
             musicPlayer -> render(window);
             musicStatusRenderUpdate();
             musicPlayer -> setMusicDuration(audioProcessing -> getCurrenMusicDuration());
+            waveGeneration -> render(window);
         };
 
         void clickPause(){
             if (musicPlayer -> isMusicPaused()){
                 audioProcessing -> pauseMusic();
+                audioProcessing -> sendMusicStateUpdate(sf::Music::Paused);
+                waveGeneration -> sendMusicStateUpdate(sf::Music::Paused,
+                    audioProcessing -> getMixDownBuffer(), audioProcessing -> getMaxMag());
             }
             else{
                 /* The reason we can't check against sf::Music::Pause is because the music could
@@ -56,8 +74,10 @@ class Visualization : public Scene {
                     stopped has no effect, since playing the stream would reset its position.
                     The codeblock tells SFML where to start playing the audio*/
                     audioProcessing -> setMusicPlayingOffset();
-
                     audioProcessing -> restartClock();
+                    audioProcessing -> sendMusicStateUpdate(sf::Music::Playing);
+                    waveGeneration -> sendMusicStateUpdate(sf::Music::Playing,
+                        audioProcessing -> getMixDownBuffer(), audioProcessing -> getMaxMag());
                 }
             }
         }
@@ -68,6 +88,9 @@ class Visualization : public Scene {
                     <= audioProcessing -> getTotalMusicDuration()){
                     audioProcessing -> updateCurrentMusicDuration(
                         (audioProcessing -> getCurrenMusicDuration()) + timeOffset);
+                    audioProcessing -> sendMusicStateUpdate(seek);
+                    waveGeneration -> sendMusicStateUpdate(seek,
+                        audioProcessing -> getMixDownBuffer(), audioProcessing -> getMaxMag());
                 }
                 else{
                     audioProcessing -> updateCurrentMusicDuration(
@@ -85,6 +108,9 @@ class Visualization : public Scene {
                     < sf::Time::Zero){
 
                     audioProcessing -> updateCurrentMusicDuration(sf::Time::Zero);
+                    audioProcessing -> sendMusicStateUpdate(seek);
+                    waveGeneration -> sendMusicStateUpdate(seek,
+                        audioProcessing -> getMixDownBuffer(), audioProcessing -> getMaxMag());
                 }
                 else{
                     audioProcessing -> updateCurrentMusicDuration(
@@ -136,7 +162,7 @@ class Visualization : public Scene {
         sf::Font font;
         std::string filePath_, typeOfVisual;
         sf::Time timeOffset;
-        uint16_t message;
+        uint16_t message, quit, seek;
 
         std::unique_ptr<AudioProcessing> audioProcessing;
         std::unique_ptr<MusicPlayer> musicPlayer;

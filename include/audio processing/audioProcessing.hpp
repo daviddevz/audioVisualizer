@@ -7,35 +7,50 @@
 #include <string>
 #include <memory>
 #include <thread>
+#include <unordered_map>
+#include <cmath>
 #include "SFML/Audio/Music.hpp"
-#include "ThreadSafeQueue.hpp"
+#include "stateUpdate.hpp"
+
 
 extern "C" {
     #include "miniaudio/miniaudio.h"
 }
 
 /*
-    This class will stream audio from file for playing and decode audio for wave generation.
-    The music playing function will be tied to MusicPlayer class for music playing animation and 
+    * This class will stream audio from file for playing and decode audio for wave generation.
+    * The music playing function will be tied to MusicPlayer class for music playing animation and 
         the decoding function will be used for wave generation of PCM data or frequency.
-    This class will extract two 512 frames at a time for visualization class. One 512 frame for
+    * This class will extract two 512 frames at a time for visualization class. One 512 frame for
         current time and the other for future time. This applies for seeking as well.
+__________________________________________________________________________________________________
+Miniaudio audio extraction
+    * Create two worker threads upon class instantiation to execute programe asynchronizely
+    * Create a uint16 variable that stores the current state of music using bitwise operation
+    * Threads: 1. Message driven thread that execute a program based on the event such as play,
+        pause, seek, stop, seek, etc
+        2. Time driven thread that handles PCM extraction, FFT and waveform preperation
 */
+
 class AudioProcessing: public sf::Music{
     public:
-        AudioProcessing(const std::string& filePath, uint16_t message):frames(1024){
+        AudioProcessing(const std::string& filePath, uint16_t message, uint16_t quit, uint16_t seek){
+            frames = 512;
+            lastFramesRead = 0;
+            maxMag = 0;
             currentMusicDuration = sf::Time::Zero;
-            lastExtractTime = sf::Time::Zero;
-            quitControlMusicState = 4;
+            lastExtractedTime = sf::Time::Zero;
+            QUIT = quit;
+            MUSIC_SEEK = seek;
             typeOfVisual = message;
 
             loadAudioFile(filePath);
             queryDecoder();
 
             uint16_t clearBit = 0;
-            messageQueue.push(message & clearBit);
+            messageStack.set(message & clearBit);
 
-            controlMusicState = std::thread(&AudioProcessing::controlLoop, this);//, std::ref(messageQueue), sampleBuffer, std::ref(currentMusicDuration));
+            controlMusicState = std::thread(&AudioProcessing::controlLoop, this);
         }
 
         // Initialize decoder and pass the file path
@@ -69,7 +84,7 @@ class AudioProcessing: public sf::Music{
 
         // Miniaudio
         void queryDecoder(){
-            ma_result result = ma_data_source_get_data_format(&decoder, NULL, &channels, &sampleRate,
+            ma_result result = ma_data_source_get_data_format(&decoder, NULL, &channels, &sampRate,
                 channelMap, MA_MAX_CHANNELS);
 
             if (result != MA_SUCCESS) {
@@ -77,37 +92,93 @@ class AudioProcessing: public sf::Music{
             }
 
             maxSampleCount = frames * static_cast<ma_uint64>(channels);
-            sampleBuffer = std::shared_ptr<float[]>(new float[maxSampleCount], std::default_delete<float[]>());//(maxSampleCount);
+            sampleBuffer = std::shared_ptr<float[]>(new float[maxSampleCount],
+                std::default_delete<float[]>());
         }
         
-        void extractChunks(){
-            // If no time value is given start at 0
+        void extractChunks(uint16_t musicState){
             void* tempBuffer = sampleBuffer.get();
-            ma_uint64 framesRead = 0;
-            ma_result result = ma_data_source_read_pcm_frames(&decoder, tempBuffer, frames, &framesRead);
+            ma_uint64 fRead = 0;
+            ma_result result;
 
-            if (result != MA_SUCCESS) {
-                throw std::runtime_error("Failed to read data");
+            if (musicState == sf::Music::Playing || musicState == MUSIC_SEEK){
+                if (((lastExtractedTime.asSeconds() - static_cast<float>(lastFramesRead)/sampRate)
+                    <= currentMusicDuration.asSeconds()) ||
+                    (lastExtractedTime.asSeconds() >= currentMusicDuration.asSeconds())){
+
+                    if(currentMusicDuration.asSeconds() > music.getDuration().asSeconds()){
+                        currentMusicDuration = music.getDuration();
+                    }
+
+                    result = ma_data_source_seek_to_second(&decoder, currentMusicDuration.asSeconds());
+                    if (result != MA_SUCCESS) {
+                        if(result != MA_AT_END){
+                            throw std::runtime_error("Failed to seek new time location");
+                        }
+                    }
+
+                    result = ma_data_source_read_pcm_frames(&decoder, tempBuffer, frames, &fRead);
+                    if (result != MA_SUCCESS) {
+                        if(result != MA_AT_END){
+                            throw std::runtime_error("Failed to read data");
+                        }
+                    }
+
+                    lastExtractedTime = sf::seconds(currentMusicDuration.asSeconds()
+                        + static_cast<float>(lastFramesRead)/sampRate);
+                    lastFramesRead = fRead;
+                }
             }
 
-            /* std::cout<<"\nFrames: \n";
-            [framesRead](std::shared_ptr<float []> arr){for(int i = 0; i<framesRead; ++i){std::cout<<arr[i]<<" ";}}(sampleBuffer); */
-        }
-        /*
-            - Create two worker threads upon class instantiation to execute programe asynchronizely
-            - Create a uint16 variable that stores the current state of music using bitwise
-                operation
-            - Threads: 1. Message driven thread that execute a program based on the event such as
-                play, pause, seek, stop, seek, etc
-                2. Time driven thread that handles PCM extraction, FFT and waveform preperation
-        */
-        
-        void sendMusicSateToQueue(uint16_t message){
-            messageQueue.push(message);
+            else if (musicState == sf::Music::Stopped){
+                result = ma_data_source_read_pcm_frames(&decoder, tempBuffer, frames, &fRead);
+                if (result != MA_SUCCESS) {
+                    if(result != MA_AT_END){
+                        throw std::runtime_error("Failed to read data");
+                    }
+                }
+
+                lastExtractedTime = sf::seconds(currentMusicDuration.asSeconds()
+                    + static_cast<float>(lastFramesRead)/sampRate);
+                lastFramesRead = fRead;
+            }
+
+            mixDownChannels();
+
+            /* [fRead](int channels, std::shared_ptr<float[]> buffer) -> void{
+                for(int i = 0; i< fRead*channels; ++i){std::cout<<i<<": "<<buffer[i]<<std::endl;}
+            }(channels, sampleBuffer); */
         }
 
+        void mixDownChannels(){
+            //mixDownBuffer.clear();
+            std::vector<float> tempMixDownBuffer = {};
+            maxMag = 0.000001f; // division by 0 could be a problem;
+            for (int i = 0; i < lastFramesRead; i += channels){
+                float addBuffer = 0;
+
+                for(int j = 0; j < channels; ++j){
+                    addBuffer += sampleBuffer[i + j];
+                    //std::cout<<" "<<i <<" Add Buffer: "<<addBuffer <<" Sample Buffer: "<<sampleBuffer[i + j];//<<std::endl;
+                }
+                float avgBuffer = addBuffer / channels;
+                tempMixDownBuffer.push_back(avgBuffer);
+                //std::cout<<" Mixed Down Buffer: "<<mixDownBuffer[i/channels] <<std::endl;
+                if(maxMag < std::fabs(avgBuffer)){
+                    maxMag = std::fabs(avgBuffer);
+                }
+            }
+
+            mixDownBuffer = tempMixDownBuffer;
+        }
+
+        void sendMusicStateUpdate(uint16_t message){ messageStack.set(message);}
+        uint64_t getFrames() const{ return frames;}
+        std::vector<float> getMixDownBuffer(){ return mixDownBuffer;}
+        float getMaxMag(){ return maxMag;}
+
         ~AudioProcessing(){
-            messageQueue.push(quitControlMusicState);
+            messageStack.set(QUIT);
             if(controlMusicState.joinable()){
                 controlMusicState.join();
             }
@@ -116,59 +187,57 @@ class AudioProcessing: public sf::Music{
         };
 
     private:
-        const ma_uint64 frames; // Samples per channel
+        ma_uint64 frames; // Samples per channel
+        ma_uint64 lastFramesRead;
         ma_uint64 maxSampleCount; // FRAMES x CHANNELS
         std::shared_ptr<float[]> sampleBuffer; // pointer to an vector of interleaved samples
-        
+        std::vector<float> mixDownBuffer;
+        float maxMag;
+
         // Miniaudio
-        ma_uint32 sampleRate; // Hz or frames per second = 44100 or 48000
+        ma_uint32 sampRate; // Hz or frames per second = 44100 or 48000
         ma_uint32 channels;
         ma_decoder decoder;
         ma_channel channelMap[MA_MAX_CHANNELS]; // maps out channel. MA_MAX_CHANNELS = 254
 
         // SFML
         sf::Music music;
-        sf::Time currentMusicDuration, lastExtractTime;
+        sf::Time currentMusicDuration, lastExtractedTime;
         sf::Clock clock;
-        uint16_t typeOfVisual, quitControlMusicState;
+        uint16_t typeOfVisual, QUIT, MUSIC_SEEK;
 
         // Threads
         /* Messages
-            Entry: 0
-            Music Stopped: 1 << 1
-            Music Playing: 1 << 2
-            Music Paused: 1 << 3
-            Music Seek: 1 << 4
-            Quit Thread: 1 << 5
+            Music Stopped: 0, Music Playing: 1, Music Paused: 2
         */
-        ThreadSafeQueue<uint16_t> messageQueue;
+        StateUpdate<uint16_t> messageStack;
         std::thread controlMusicState;
         
-        void controlLoop(){//ThreadSafeQueue<uint16_t>& queue), std::shared_ptr<std::vector<float>> audioBuffer,
-            //sf::Time& duration){
+        void controlLoop(){
             const uint16_t MUSIC_STOPPED = sf::Music::Stopped;
             const uint16_t MUSIC_PAUSED = sf::Music::Paused;
             const uint16_t MUSIC_PLAYING = sf::Music::Playing;
-            const uint16_t MUSIC_SEEK = 3;
 
-            uint16_t message = 0, musicStopMessageCounter = 0;
+            uint16_t message = 0, stopMsgCounter = 0;
             uint16_t& msgRef = message;
 
             while(true){
-                messageQueue.waitAndPop(msgRef);
+                messageStack.waitAndGet(msgRef);
 
                 if(message == MUSIC_STOPPED && currentMusicDuration == sf::Time::Zero){
-                    if (musicStopMessageCounter >= 1){ continue;}
-                    extractChunks();
-                    ++musicStopMessageCounter;
+                    if (stopMsgCounter >= 1){ continue;}
+                    extractChunks(message);
+                    ++stopMsgCounter;
                 }
+
                 else if(message == MUSIC_PLAYING || message == MUSIC_SEEK){
-                    extractChunks();
-                }
+                    extractChunks(message);}
+
                 else if(message == MUSIC_PAUSED){
                     continue;
                 }
-                else if(message == quitControlMusicState){
+
+                else if(message == QUIT){
                     break;
                 }
             }

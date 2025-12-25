@@ -1,46 +1,166 @@
 #pragma once
-#include "SFML/Graphics.hpp"
+#include <thread>
+#include <atomic>
+#include "buttons/upload.hpp"
+#include "audio processing/stateUpdate.hpp"
+
+using WaveList = std::vector<std::unique_ptr<UploadButton>>;
 
 class WaveGeneration{
-private:
-    sf::Vector2u windowDim_;
-    sf::Vector2f initialPos_; // Bottom position of the wave
-    const unsigned int numOfWaves;
-    sf::RectangleShape rect;
-    float magnitude, frequency;
-public:
-    WaveGeneration(sf::Vector2u windowDim, const unsigned int FFTSampleSize, float mag, float freq,
-    sf::Vector2f initialPos):windowDim_(windowDim), numOfWaves(FFTSampleSize), magnitude(mag), frequency(freq),
-    initialPos_(initialPos){};
+    private:
+        struct windowDim{
+            unsigned int width, height;
+        };
 
-    void designWave(){
-        float waveWidth = (static_cast<float>(windowDim_.x)/numOfWaves) * 0.95f;
-        float waveHeight = (static_cast<float>(windowDim_.x) - initialPos_.y) * magnitude;
+        struct buttonDim{
+            float width, height;
+        };
 
-    }
-    sf::RectangleShape getWave(){
-        return rect;
-    }
+        windowDim winDim;
+        buttonDim buttDim;
+        buttonDim buttWindDim;
+        float renderDisplacement, maxMag;
+        sf::Font fnt;
+        std::string text;
+        int buttTxtFontSize;
 
+        uint16_t typeOfVisual, QUIT, MUSIC_SEEK;
+        uint64_t audioFrames;
+        StateUpdate<uint16_t> messageStack;
+        std::thread renderWaves;
+        WaveList frontWaves; // For rendering
+        WaveList backWaves; // For audio thread  writes
+        std::vector<float> audioData;
+
+        std::mutex swapMutex;
+        std::atomic<bool> hasNewWaves{false};
+
+        void controlLoop(){
+            const uint16_t MUSIC_STOPPED = sf::Music::Stopped;
+            const uint16_t MUSIC_PAUSED = sf::Music::Paused;
+            const uint16_t MUSIC_PLAYING = sf::Music::Playing;
+
+            uint16_t message = 0, stopMsgCounter = 0;
+            uint16_t& msgRef = message;
+            std::vector<float>& audioDataRef = audioData;
+            float& maxMagRef = maxMag;
+
+            while(true){
+                messageStack.waitAndGet(msgRef, audioDataRef, maxMagRef);
+
+                if(message == MUSIC_STOPPED){
+                    if (stopMsgCounter >= 1){ continue;}
+                    updateWaves();
+                    ++stopMsgCounter;
+                }
+
+                else if(message == MUSIC_PLAYING || message == MUSIC_SEEK){
+                    updateWaves();
+                }
+
+                else if(message == MUSIC_PAUSED){
+                    continue;
+                }
+
+                else if(message == QUIT){
+                    break;
+                }
+            }
+        }
+
+    public:
+        WaveGeneration(uint16_t visual, uint16_t quit, uint16_t seek, uint64_t frames, sf::Font ft,
+            const sf::Vector2f windowDimension):typeOfVisual(visual), audioFrames(frames/2), fnt(ft){
+            QUIT = quit;
+            MUSIC_SEEK = seek;
+            text = ""; // do not need text for waves
+            buttTxtFontSize = 1;
+            winDim = {static_cast<unsigned int>(windowDimension.x),
+                static_cast<unsigned int>(windowDimension.y)};
+
+            renderDisplacement = 0.1f;
+            buttDim.width = (1 - renderDisplacement) * windowDimension.x / (audioFrames);
+            buttDim.height = (1 - renderDisplacement) * windowDimension.y / 4.0f;
+            buttWindDim = {windowDimension.x, windowDimension.y};
+            renderWaves = std::thread(&WaveGeneration::controlLoop, this);
+        };
+
+        void render(sf::RenderWindow& window){
+            // Swap if new data is ready
+            if (hasNewWaves.load(std::memory_order_acquire)) {
+                std::lock_guard<std::mutex> lock(swapMutex);
+                frontWaves.swap(backWaves);
+                hasNewWaves.store(false, std::memory_order_release);
+            }
+
+            for(const auto& wave : frontWaves){
+                wave -> draw(window);
+            }
+        }
+
+        void sendMusicStateUpdate(uint16_t message, std::vector<float> pcmBuffer_, float maxMag_){
+            messageStack.set(message, pcmBuffer_, maxMag_);
+        }
+
+        /* void setData(const std::vector<float> data, float maxMag_){
+            audioData = data;
+            maxMag = maxMag_;
+        } */
+
+        void updateWaves(){
+            if (audioData.empty() || maxMag <= 0.000001f){ return;};
+
+            WaveList local;
+            local.reserve(audioData.size());
+
+            int frameCounter = 0, xMove = -900, yMove = -50;
+
+            //waves.clear();
+            if (audioFrames != audioData.size()){
+                audioFrames = audioData.size();  
+                buttDim.width = (1 - renderDisplacement) * buttWindDim.width / (audioFrames);
+            }
+
+            for(float data : audioData){
+                float safeMag = std::max(maxMag, 0.000001f); // safety to prevent division by 0
+                float tempHeight = (data/safeMag) * buttDim.height;
+
+                auto wave = std::make_unique<UploadButton>(
+                    sf::Vector2f(buttWindDim.width, buttWindDim.height),
+                    fnt, text,
+                    sf::Vector2f(buttDim.width, tempHeight),
+                    buttTxtFontSize);
+                
+                wave -> moveButton(xMove + (buttDim.width * frameCounter), yMove);
+
+                local.emplace_back(std::move(wave));
+                ++frameCounter;
+            }
+
+            // Swap phase
+            {
+                std::lock_guard<std::mutex> lock(swapMutex);
+                backWaves.swap(local);
+                hasNewWaves.store(true, std::memory_order_release);
+            }
+        }
+
+        ~WaveGeneration(){
+            messageStack.set(QUIT);
+            if(renderWaves.joinable()){
+                renderWaves.join();
+            }
+        }
 };
 
 
-/* 
-    * This class takes window size and FFTRenderSize to build a wave(rectangle) that can be displayed
-    * The wave color and height will be updated based on FFT mag and frequency bin
-    * The size of the recetangle will be based of the window dimension
- */
 
-/* Wave Animation algorthm
-1. 2 float arrays for storing current and next waves rendered to the window
-2. Compute FFT for two windows, store earlier time samples in current and later in next array
-3. While song is playing, update the wave position and display to animate waves based on display time
-4. Before a wave reaches the edge of the window, deallocated the wave's memory and clear the array element
-5. Repeat step 4 until all the elements are cleared and wave memory deallocated in current array
-6. Reinitialize current array with next array, clear next array and compute FFT for the next window
-7. Reapeat steap 3-6 till the song ends
-
-Music State Functionality
-* Pause the wave animation if music stops and continue animation when music plays
-* Clear all animation on the window at the end of music and deallocate wave memory in current and nex array
-*/
+/* Introduction
+    * This class will animate a rectangles in a moving window to represent PCM or frequency data
+    * The size of the recetangle will be dynamically updated based on frames shown on the screen
+    * Class constructor will take-in typeOfVisual as parameter
+    * Class constructor will spin off a thread based music state model
+    
+Wave Animation algorthm
+    1. While music is playing, display 512 frames or FFT to the window
+    2. The thread responsibility is to update the size of wave for PCM data */

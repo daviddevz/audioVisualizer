@@ -8,7 +8,8 @@ void AudioVisualizer::loadWindow(){
 void AudioVisualizer::startAudioVisualizer(){
     loadWindow();
     SceneManager sceneManager(window);
-
+    window.setFramerateLimit(fps);
+    
     while (window.isOpen()){
         sf::Event event;
         while (window.pollEvent(event)){

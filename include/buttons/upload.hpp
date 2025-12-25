@@ -1,5 +1,3 @@
-// Written by David I. 2024
-// Button to upload music
 #pragma once
 #include "button.hpp"
 
