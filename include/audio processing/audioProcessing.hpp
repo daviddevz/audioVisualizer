@@ -9,6 +9,7 @@
 #include <thread>
 #include <unordered_map>
 #include <cmath>
+#include <variant>
 #include "SFML/Audio/Music.hpp"
 #include "stateUpdate.hpp"
 #include "FFT/FFT.hpp"
@@ -33,7 +34,8 @@ Miniaudio audio extraction
         2. Time driven thread that handles PCM extraction, FFT and waveform preperation
 */
 
-constexpr float cMinMagnitude = 1e-6f;
+constexpr float cMinMagnitude = 1e-12f;
+using MixDownBuffer = std::variant<std::vector<float>, std::vector<std::complex<double>>>;
 
 class AudioProcessing: public sf::Music{
     public:
@@ -75,7 +77,7 @@ class AudioProcessing: public sf::Music{
             }
 
             // FFT class 
-            fft = std::make_unique<FFT_<float>>();
+            fft = std::make_unique<FFT_>();
         }
 
         // SFML Music Streaming Operations
@@ -156,32 +158,88 @@ class AudioProcessing: public sf::Music{
             }(channels, sampleBuffer); */
         }
 
-        void mixDownChannels(){
-            //mixDownBuffer.clear();
-            std::vector<float> tempMixDownBuffer = {};
-            maxMag = cMinMagnitude; // division by 0 could be a problem;
-            for (int i = 0; i < lastFramesRead; i += channels){
-                float addBuffer = 0;
+        //Hann window is defined W(n) = 0.5 - 0.5*cos(2*pi*n/N) for STFT
+        void applyHannWindow(std::vector<std::complex<double>>& samples){
+            
+            int N = samples.size();
+            double W = 0.0;
 
-                for(int j = 0; j < channels; ++j){
-                    addBuffer += sampleBuffer[i + j];
-                    //std::cout<<" "<<i <<" Add Buffer: "<<addBuffer <<" Sample Buffer: "<<sampleBuffer[i + j];//<<std::endl;
-                }
-                float avgBuffer = addBuffer / channels;
-                tempMixDownBuffer.push_back(avgBuffer);
-                //std::cout<<" Mixed Down Buffer: "<<mixDownBuffer[i/channels] <<std::endl;
-                if(maxMag < std::fabs(avgBuffer)){
-                    maxMag = std::fabs(avgBuffer);
-                }
+            if (N <= 1) {return;}
+
+            const double twoPiOverN = 2.0 * M_PI / N;
+
+            for(int n = 0; n < N; ++n){
+                W = 0.50 - 0.50 * std::cos(twoPiOverN * n); // Periodic Hann for STFT
+                samples[n] *= (2.0 * W); // Amplitude correction for display not reconstruction of signals
             }
-
-            mixDownBuffer = tempMixDownBuffer;
-            //fft -> runFFT(mixDownBuffer, static_cast<unsigned>(lastFramesRead));
         }
+
+        void mixDownChannels(){
+            switch(typeOfVisual){
+                case 0:
+                {
+                    //mixDownBuffer.clear();
+                    std::vector<float> tempMixDownBuffer = {};
+                    maxMag = cMinMagnitude; // division by 0 could be a problem;
+                    for (int i = 0; i < lastFramesRead * channels; i += channels){
+                        float addBuffer = 0;
+
+                        for(int j = 0; j < channels; ++j){
+                            addBuffer += sampleBuffer[i + j];
+                            //std::cout<<" "<<i <<" Add Buffer: "<<addBuffer <<" Sample Buffer: "<<sampleBuffer[i + j];//<<std::endl;
+                        }
+                        float avgBuffer = addBuffer / channels;
+                        tempMixDownBuffer.push_back(avgBuffer);
+                        //std::cout<<" Mixed Down Buffer: "<<mixDownBuffer[i/channels] <<std::endl;
+                        if(maxMag < std::fabs(avgBuffer)){
+                            maxMag = std::fabs(avgBuffer);
+                        }
+                    }
+
+                    mixDownBuffer = tempMixDownBuffer;
+                    break;
+                }
+
+                case 1:
+                {
+                    //mixDownBuffer.clear();
+                    std::vector<std::complex<double>> tempMixDownBuffer = {};
+                    maxMag = cMinMagnitude; // division by 0 could be a problem;
+                    for (int i = 0; i < lastFramesRead * channels; i += channels){
+                        double addBuffer = 0;
+
+                        for(int j = 0; j < channels; ++j){
+                            addBuffer += sampleBuffer[i + j];
+                            //std::cout<<" "<<i <<" Add Buffer: "<<addBuffer <<" Sample Buffer: "<<sampleBuffer[i + j];//<<std::endl;
+                        }
+                        double avgBuffer = addBuffer / channels;
+                        tempMixDownBuffer.push_back(std::complex<double>(avgBuffer, 0.0));
+                        //std::cout<<" Mixed Down Buffer: "<<i/channels <<" "<<tempMixDownBuffer[i/channels] <<std::endl;
+                        
+                    }
+                    applyHannWindow (tempMixDownBuffer);
+                    mixDownBuffer = tempMixDownBuffer;
+                    //std::cout <<std::get<std::vector<std::complex<double>>>(mixDownBuffer).size() <<std::endl;
+                    auto buffer = std::get_if<std::vector<std::complex<double>>>(&mixDownBuffer);
+                    fft -> runFFT(buffer, static_cast<unsigned>(lastFramesRead));
+
+                    mixDownBuffer = *buffer; // memory address buffer points to changes after runFFT
+                    maxMag = 100.0f; 
+                    break;
+                }
+
+                default:
+                    break;
+            }
+        }
+        
 
         void sendMusicStateUpdate(uint16_t message){ messageStack.set(message);}
         uint64_t getFrames() const{ return frames;}
-        std::vector<float> getMixDownBuffer(){ return mixDownBuffer;}
+
+        //std::vector<float> getMixDownBuffer(){ return mixDownBuffer;}
+        MixDownBuffer getMixDownBuffer() const{ return mixDownBuffer;}
+        
         float getMaxMag(){ return maxMag;}
 
         ~AudioProcessing(){
@@ -198,7 +256,9 @@ class AudioProcessing: public sf::Music{
         ma_uint64 lastFramesRead;
         ma_uint64 maxSampleCount; // FRAMES x CHANNELS
         std::shared_ptr<float[]> sampleBuffer; // pointer to an vector of interleaved samples
-        std::vector<float> mixDownBuffer;
+        //std::vector<float> mixDownBuffer;
+        MixDownBuffer mixDownBuffer;
+        //std::vector<std::complex<double>> mixDownBufferComp;
         float maxMag;
 
         // Miniaudio
@@ -214,7 +274,7 @@ class AudioProcessing: public sf::Music{
         uint16_t typeOfVisual, QUIT, MUSIC_SEEK;
 
         // FFT
-        std::unique_ptr<FFT_<float>> fft;
+        std::unique_ptr<FFT_> fft;
 
         // Threads
         /* Messages

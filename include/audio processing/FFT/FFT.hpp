@@ -5,7 +5,6 @@
 #include <bit>
 #include "SimpleFFT/fft.h"
 
-template <typename T>
 class FFT_{
     public:
         FFT_() = default;
@@ -33,7 +32,7 @@ class FFT_{
                 unsigned int k = 0;
                 
                 if(size == 0){ return digit;}
-                
+
                 while (size != 0){
                     size >>= 1;
                     ++k;
@@ -44,8 +43,8 @@ class FFT_{
             return digit - 1 - countl_zero(nFFT);
         }
 
-        void runFFT(std::vector<T> samples, unsigned int size){
-            fftSamplesIn = samples;
+        void runFFT(std::vector<std::complex<double>>* samples, unsigned int size){
+            fftSamplesIn = *samples;
             nFFT = size;
 
             if (!isPowerOfTwo()){
@@ -57,15 +56,28 @@ class FFT_{
             }
 
             // FFT implementation using simpleFFT
+            fftSamplesOut.resize(nFFTPad);
             const char* error = NULL;
             bool result = simple_fft::FFT(fftSamplesIn, fftSamplesOut, nFFTPad, error);
 
             if (!result){throw std::runtime_error(error);};
+
+            /* std::cout<<"FFT In Size "<<fftSamplesIn.size()<<std::endl;
+            std::cout<<"nFFT "<<nFFT<<std::endl;
+            std::cout<<"nFFTPad "<<nFFTPad<<std::endl; */
+            //int counter = 0;
+            
+            *samples = fftSamplesOut;
+
+            /* for(const auto& data : *samples){
+                std::cout<<counter <<" "<<data<<std::endl;
+                ++counter;
+            } */
         }
 
         ~FFT_() = default;
 
     private:
         unsigned nFFT, nFFTPad, kPow;
-        std::vector<T> fftSamplesIn, fftSamplesOut;
+        std::vector<std::complex<double>> fftSamplesIn, fftSamplesOut;
 };

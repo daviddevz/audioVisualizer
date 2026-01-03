@@ -7,7 +7,8 @@
 #include "audio processing/stateUpdate.hpp"
 
 using WaveList = std::vector<std::unique_ptr<UploadButton>>;
-constexpr float kMinMagnitude = 1e-6f;
+using AudioData = std::variant<std::vector<float>, std::vector<std::complex<double>>>;
+constexpr float kMinMagnitude = 1e-12f;
 
 class WaveGeneration{
     private:
@@ -35,6 +36,7 @@ class WaveGeneration{
         WaveList backWaves; // For audio thread  writes
         std::vector<float> audioData;
         std::vector<std::complex<double>> audioDataComp;
+        //AudioData audioData;
 
         std::mutex swapMutex;
         std::atomic<bool> hasNewWaves{false};
@@ -48,11 +50,12 @@ class WaveGeneration{
             uint16_t& msgRef = message;
             std::vector<float>& audioDataRef = audioData;
             std::vector<std::complex<double>>& audioDataCompRef = audioDataComp;
+            //AudioData& audioDataRef = audioData;
             float& maxMagRef = maxMag;
 
             while(true){
-                messageStack.waitAndGet(msgRef, audioDataRef, maxMagRef);
-                //messageStack.waitAndGet(msgRef, audioDataCompRef, maxMagRef);
+                if (typeOfVisual){messageStack.waitAndGet(msgRef, audioDataCompRef, maxMagRef);}
+                else{messageStack.waitAndGet(msgRef, audioDataRef, maxMagRef);}
 
                 if(message == MUSIC_STOPPED){
                     if (stopMsgCounter >= 1){ continue;}
@@ -104,6 +107,14 @@ class WaveGeneration{
             }
         }
 
+        /* std::vector<float> retrievBufferType(AudioData& pcmBuffer_){
+            return std::get<std::vector<float>>(pcmBuffer_);
+        }
+
+        std::vector<std::complex<double>> retrievBufferCompType(AudioData& pcmBuffer_){
+            return std::get<std::vector<std::complex<double>>>(pcmBuffer_);
+        } */
+
         void sendMusicStateUpdate(uint16_t message, std::vector<float> pcmBuffer_, float maxMag_){
             messageStack.set(message, pcmBuffer_, maxMag_);
         }
@@ -111,6 +122,19 @@ class WaveGeneration{
         void sendMusicStateUpdate(uint16_t message, std::vector<std::complex<double>> pcmBuffer_,
             float maxMag_){
             messageStack.set(message, pcmBuffer_, maxMag_);
+        }
+
+        void sendMusicStateUpdate(uint16_t message, AudioData pcmBuffer_, float maxMag_){
+            /* if (typeOfVisual){
+                auto buffer = retrievBufferCompType(pcmBuffer_);
+                messageStack.set(message, buffer, maxMag_);
+            }
+            else{
+                auto buffer = retrievBufferType(pcmBuffer_);
+                messageStack.set(message, buffer, maxMag_);
+            } */
+
+            std::visit([&](auto& buffer){messageStack.set(message, buffer, maxMag_);}, pcmBuffer_);
         }
 
         void updateWaves(){
@@ -131,10 +155,9 @@ class WaveGeneration{
                     }
 
                     for(std::complex<double> data : audioDataComp){
-                        float safeMag = std::max(maxMag, 0.000001f); // safety to prevent division by 0
-                        float tempHeight = (std::sqrt(data.real()*data.real() + data.imag()*data.imag())
-                            /safeMag * buttDim.height);
-
+                        float safeMag = std::max(maxMag, kMinMagnitude); // safety to prevent division by 0
+                        float mag = std::clamp((20 * std::log10(std::fabs(data) + kMinMagnitude)), -100.0, 0.0);
+                        float tempHeight = mag / safeMag * buttDim.height;
                         auto wave = std::make_unique<UploadButton>(
                             sf::Vector2f(buttWindDim.width, buttWindDim.height),
                             fnt, text,
@@ -142,7 +165,7 @@ class WaveGeneration{
                             buttTxtFontSize);
                         
                         wave -> moveButton(xMove + (buttDim.width * frameCounter), yMove);
-
+                        
                         local.emplace_back(std::move(wave));
                         ++frameCounter;
                     }
@@ -173,7 +196,7 @@ class WaveGeneration{
                     }
 
                     for(float data : audioData){
-                        float safeMag = std::max(maxMag, 0.000001f); // safety to prevent division by 0
+                        float safeMag = std::max(maxMag, kMinMagnitude); // safety to prevent division by 0
                         float tempHeight = (data/safeMag) * buttDim.height;
 
                         auto wave = std::make_unique<UploadButton>(

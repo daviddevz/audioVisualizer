@@ -64,7 +64,7 @@ class StateUpdate{
             cond.wait(lock, [this] { return hasValue;}); // Wait for state update is there is none
             value = data; // Retrieve state
             hasValue = false;
-            result = pcmBuffer;
+            result = pcmBufferComp;
             maxMag = maxSample;
         }
 
