@@ -11,6 +11,7 @@
 #include <cmath>
 #include "SFML/Audio/Music.hpp"
 #include "stateUpdate.hpp"
+#include "FFT/FFT.hpp"
 
 
 extern "C" {
@@ -31,6 +32,8 @@ Miniaudio audio extraction
         pause, seek, stop, seek, etc
         2. Time driven thread that handles PCM extraction, FFT and waveform preperation
 */
+
+constexpr float cMinMagnitude = 1e-6f;
 
 class AudioProcessing: public sf::Music{
     public:
@@ -70,6 +73,9 @@ class AudioProcessing: public sf::Music{
             if (result != MA_SUCCESS) {
                 throw std::runtime_error("Could not load file");
             }
+
+            // FFT class 
+            fft = std::make_unique<FFT_<float>>();
         }
 
         // SFML Music Streaming Operations
@@ -153,7 +159,7 @@ class AudioProcessing: public sf::Music{
         void mixDownChannels(){
             //mixDownBuffer.clear();
             std::vector<float> tempMixDownBuffer = {};
-            maxMag = 0.000001f; // division by 0 could be a problem;
+            maxMag = cMinMagnitude; // division by 0 could be a problem;
             for (int i = 0; i < lastFramesRead; i += channels){
                 float addBuffer = 0;
 
@@ -170,6 +176,7 @@ class AudioProcessing: public sf::Music{
             }
 
             mixDownBuffer = tempMixDownBuffer;
+            //fft -> runFFT(mixDownBuffer, static_cast<unsigned>(lastFramesRead));
         }
 
         void sendMusicStateUpdate(uint16_t message){ messageStack.set(message);}
@@ -205,6 +212,9 @@ class AudioProcessing: public sf::Music{
         sf::Time currentMusicDuration, lastExtractedTime;
         sf::Clock clock;
         uint16_t typeOfVisual, QUIT, MUSIC_SEEK;
+
+        // FFT
+        std::unique_ptr<FFT_<float>> fft;
 
         // Threads
         /* Messages

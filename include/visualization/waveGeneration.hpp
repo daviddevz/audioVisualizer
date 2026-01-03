@@ -1,10 +1,13 @@
 #pragma once
+
 #include <thread>
 #include <atomic>
+#include <complex>
 #include "buttons/upload.hpp"
 #include "audio processing/stateUpdate.hpp"
 
 using WaveList = std::vector<std::unique_ptr<UploadButton>>;
+constexpr float kMinMagnitude = 1e-6f;
 
 class WaveGeneration{
     private:
@@ -31,6 +34,7 @@ class WaveGeneration{
         WaveList frontWaves; // For rendering
         WaveList backWaves; // For audio thread  writes
         std::vector<float> audioData;
+        std::vector<std::complex<double>> audioDataComp;
 
         std::mutex swapMutex;
         std::atomic<bool> hasNewWaves{false};
@@ -43,10 +47,12 @@ class WaveGeneration{
             uint16_t message = 0, stopMsgCounter = 0;
             uint16_t& msgRef = message;
             std::vector<float>& audioDataRef = audioData;
+            std::vector<std::complex<double>>& audioDataCompRef = audioDataComp;
             float& maxMagRef = maxMag;
 
             while(true){
                 messageStack.waitAndGet(msgRef, audioDataRef, maxMagRef);
+                //messageStack.waitAndGet(msgRef, audioDataCompRef, maxMagRef);
 
                 if(message == MUSIC_STOPPED){
                     if (stopMsgCounter >= 1){ continue;}
@@ -102,46 +108,98 @@ class WaveGeneration{
             messageStack.set(message, pcmBuffer_, maxMag_);
         }
 
-        /* void setData(const std::vector<float> data, float maxMag_){
-            audioData = data;
-            maxMag = maxMag_;
-        } */
+        void sendMusicStateUpdate(uint16_t message, std::vector<std::complex<double>> pcmBuffer_,
+            float maxMag_){
+            messageStack.set(message, pcmBuffer_, maxMag_);
+        }
 
         void updateWaves(){
-            if (audioData.empty() || maxMag <= 0.000001f){ return;};
+            switch(typeOfVisual){
+                case 1:
+                {
+                    if (audioDataComp.empty() || maxMag <= kMinMagnitude){ return;};
 
-            WaveList local;
-            local.reserve(audioData.size());
+                    WaveList local;
+                    local.reserve(audioDataComp.size());
 
-            int frameCounter = 0, xMove = -900, yMove = -50;
+                    int frameCounter = 0, xMove = -900, yMove = -50;
 
-            //waves.clear();
-            if (audioFrames != audioData.size()){
-                audioFrames = audioData.size();  
-                buttDim.width = (1 - renderDisplacement) * buttWindDim.width / (audioFrames);
-            }
+                    //waves.clear();
+                    if (audioFrames != audioDataComp.size()){
+                        audioFrames = audioDataComp.size();  
+                        buttDim.width = (1 - renderDisplacement) * buttWindDim.width / (audioFrames);
+                    }
 
-            for(float data : audioData){
-                float safeMag = std::max(maxMag, 0.000001f); // safety to prevent division by 0
-                float tempHeight = (data/safeMag) * buttDim.height;
+                    for(std::complex<double> data : audioDataComp){
+                        float safeMag = std::max(maxMag, 0.000001f); // safety to prevent division by 0
+                        float tempHeight = (std::sqrt(data.real()*data.real() + data.imag()*data.imag())
+                            /safeMag * buttDim.height);
 
-                auto wave = std::make_unique<UploadButton>(
-                    sf::Vector2f(buttWindDim.width, buttWindDim.height),
-                    fnt, text,
-                    sf::Vector2f(buttDim.width, tempHeight),
-                    buttTxtFontSize);
-                
-                wave -> moveButton(xMove + (buttDim.width * frameCounter), yMove);
+                        auto wave = std::make_unique<UploadButton>(
+                            sf::Vector2f(buttWindDim.width, buttWindDim.height),
+                            fnt, text,
+                            sf::Vector2f(buttDim.width, tempHeight),
+                            buttTxtFontSize);
+                        
+                        wave -> moveButton(xMove + (buttDim.width * frameCounter), yMove);
 
-                local.emplace_back(std::move(wave));
-                ++frameCounter;
-            }
+                        local.emplace_back(std::move(wave));
+                        ++frameCounter;
+                    }
 
-            // Swap phase
-            {
-                std::lock_guard<std::mutex> lock(swapMutex);
-                backWaves.swap(local);
-                hasNewWaves.store(true, std::memory_order_release);
+                    // Swap phase
+                    {
+                        std::lock_guard<std::mutex> lock(swapMutex);
+                        backWaves.swap(local);
+                        hasNewWaves.store(true, std::memory_order_release);
+                    }
+
+                    break;
+                }
+
+                case 0:
+                {
+                    if (audioData.empty() || maxMag <= kMinMagnitude){ return;};
+
+                    WaveList local;
+                    local.reserve(audioData.size());
+
+                    int frameCounter = 0, xMove = -900, yMove = -50;
+
+                    //waves.clear();
+                    if (audioFrames != audioData.size()){
+                        audioFrames = audioData.size();  
+                        buttDim.width = (1 - renderDisplacement) * buttWindDim.width / (audioFrames);
+                    }
+
+                    for(float data : audioData){
+                        float safeMag = std::max(maxMag, 0.000001f); // safety to prevent division by 0
+                        float tempHeight = (data/safeMag) * buttDim.height;
+
+                        auto wave = std::make_unique<UploadButton>(
+                            sf::Vector2f(buttWindDim.width, buttWindDim.height),
+                            fnt, text,
+                            sf::Vector2f(buttDim.width, tempHeight),
+                            buttTxtFontSize);
+                        
+                        wave -> moveButton(xMove + (buttDim.width * frameCounter), yMove);
+
+                        local.emplace_back(std::move(wave));
+                        ++frameCounter;
+                    }
+
+                    // Swap phase
+                    {
+                        std::lock_guard<std::mutex> lock(swapMutex);
+                        backWaves.swap(local);
+                        hasNewWaves.store(true, std::memory_order_release);
+                    }
+
+                    break;
+                }
+
+                default:
+                    break;
             }
         }
 

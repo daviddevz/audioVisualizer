@@ -2,6 +2,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
+#include <complex>
 
 template <typename T>
 class StateUpdate{
@@ -10,6 +11,7 @@ class StateUpdate{
         T data{};
         bool hasValue = false;
         std::vector<float> pcmBuffer;
+        std::vector<std::complex<double>> pcmBufferComp;
         float maxSample;
         std::condition_variable cond;
     
@@ -32,6 +34,15 @@ class StateUpdate{
             cond.notify_one(); // Notifies a waiting thread
         }
 
+        void set(T new_value, std::vector<std::complex<double>> pcmBuffer_, float maxMag_){
+            std::lock_guard<std::mutex> lock(mtx); // Acquire lock
+            data = std::move(new_value); // Update recent state
+            hasValue = !pcmBuffer_.empty();
+            pcmBufferComp = pcmBuffer_;
+            maxSample = maxMag_;
+            cond.notify_one(); // Notifies a waiting thread
+        }
+
         void waitAndGet(T& value){
             std::unique_lock<std::mutex> lock(mtx); // Acquire lock
             cond.wait(lock, [this] { return hasValue;}); // Wait for state update is there is none
@@ -40,6 +51,15 @@ class StateUpdate{
         }
 
         void waitAndGet(T& value, std::vector<float>& result, float& maxMag){
+            std::unique_lock<std::mutex> lock(mtx); // Acquire lock
+            cond.wait(lock, [this] { return hasValue;}); // Wait for state update is there is none
+            value = data; // Retrieve state
+            hasValue = false;
+            result = pcmBuffer;
+            maxMag = maxSample;
+        }
+
+        void waitAndGet(T& value, std::vector<std::complex<double>>& result, float& maxMag){
             std::unique_lock<std::mutex> lock(mtx); // Acquire lock
             cond.wait(lock, [this] { return hasValue;}); // Wait for state update is there is none
             value = data; // Retrieve state

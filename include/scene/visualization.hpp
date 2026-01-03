@@ -7,6 +7,7 @@
 #include "visualization/musicPlayer.hpp"
 #include "visualization/waveGeneration.hpp"
 
+
 class Visualization : public Scene {
     public:
         Visualization():timeOffset(sf::seconds(2.0f)), quit(4), seek(5){};

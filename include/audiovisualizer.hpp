@@ -12,7 +12,7 @@ public:
     ~AudioVisualizer() = default;
 
 private:
-    unsigned int windowWidth = 2000, windowHeight = 1000, fps = 60;
+    unsigned int windowWidth = 2000, windowHeight = 1000, fps = 30;
     std::string windowTitle = "Audio Visualizer", sceneId;
     sf::RenderWindow window;
 };
