@@ -2,6 +2,7 @@
 .vscode/*
 makefile
 src/main/build/*
+*.ods
 
 
 #executable
