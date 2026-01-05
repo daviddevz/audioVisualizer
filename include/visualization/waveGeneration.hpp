@@ -147,7 +147,7 @@ class WaveGeneration{
         }
 
         void averageFreq (std::vector<std::complex<double>>& samples, std::vector<double>& freqBins){
-            int N = samples.size(); 
+            int N = samples.size() / 2; 
             double binFactor = N / static_cast<double>(sampleFreq);
 
             // Stores the average mangitude of logarithm scale frequency bins
