@@ -22,8 +22,8 @@ class Visualization : public Scene {
             musicPlayer = std::make_unique<MusicPlayer>(windowDimension_, font,
             audioProcessing -> getTotalMusicDuration());
             
-            waveGeneration = std::make_unique<WaveGeneration>(message, quit, seek,
-                audioProcessing -> getFrames(), font, windowDimension_);
+            waveGeneration = std::make_unique<WaveGeneration>(message, quit, seek, font,
+                audioProcessing->getFrames(), windowDimension_, audioProcessing->getSampleRate());
         };
 
         void musicStatusRenderUpdate(){

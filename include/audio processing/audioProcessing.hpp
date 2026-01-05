@@ -152,10 +152,6 @@ class AudioProcessing: public sf::Music{
             }
 
             mixDownChannels();
-
-            /* [fRead](int channels, std::shared_ptr<float[]> buffer) -> void{
-                for(int i = 0; i< fRead*channels; ++i){std::cout<<i<<": "<<buffer[i]<<std::endl;}
-            }(channels, sampleBuffer); */
         }
 
         //Hann window is defined W(n) = 0.5 - 0.5*cos(2*pi*n/N) for STFT
@@ -204,27 +200,21 @@ class AudioProcessing: public sf::Music{
                 {
                     //mixDownBuffer.clear();
                     std::vector<std::complex<double>> tempMixDownBuffer = {};
-                    maxMag = cMinMagnitude; // division by 0 could be a problem;
                     for (int i = 0; i < lastFramesRead * channels; i += channels){
                         double addBuffer = 0;
 
                         for(int j = 0; j < channels; ++j){
                             addBuffer += sampleBuffer[i + j];
-                            //std::cout<<" "<<i <<" Add Buffer: "<<addBuffer <<" Sample Buffer: "<<sampleBuffer[i + j];//<<std::endl;
                         }
                         double avgBuffer = addBuffer / channels;
-                        tempMixDownBuffer.push_back(std::complex<double>(avgBuffer, 0.0));
-                        //std::cout<<" Mixed Down Buffer: "<<i/channels <<" "<<tempMixDownBuffer[i/channels] <<std::endl;
-                        
+                        tempMixDownBuffer.push_back(std::complex<double>(avgBuffer, 0.0));                        
                     }
                     applyHannWindow (tempMixDownBuffer);
                     mixDownBuffer = tempMixDownBuffer;
-                    //std::cout <<std::get<std::vector<std::complex<double>>>(mixDownBuffer).size() <<std::endl;
                     auto buffer = std::get_if<std::vector<std::complex<double>>>(&mixDownBuffer);
                     fft -> runFFT(buffer, static_cast<unsigned>(lastFramesRead));
-
                     mixDownBuffer = *buffer; // memory address buffer points to changes after runFFT
-                    maxMag = 100.0f; 
+                    maxMag = 200.0f; 
                     break;
                 }
 
@@ -236,9 +226,9 @@ class AudioProcessing: public sf::Music{
 
         void sendMusicStateUpdate(uint16_t message){ messageStack.set(message);}
         uint64_t getFrames() const{ return frames;}
-
-        //std::vector<float> getMixDownBuffer(){ return mixDownBuffer;}
         MixDownBuffer getMixDownBuffer() const{ return mixDownBuffer;}
+        uint32_t getSampleRate() const{ return static_cast<uint32_t>(sampRate);}
+
         
         float getMaxMag(){ return maxMag;}
 
@@ -256,9 +246,7 @@ class AudioProcessing: public sf::Music{
         ma_uint64 lastFramesRead;
         ma_uint64 maxSampleCount; // FRAMES x CHANNELS
         std::shared_ptr<float[]> sampleBuffer; // pointer to an vector of interleaved samples
-        //std::vector<float> mixDownBuffer;
         MixDownBuffer mixDownBuffer;
-        //std::vector<std::complex<double>> mixDownBufferComp;
         float maxMag;
 
         // Miniaudio

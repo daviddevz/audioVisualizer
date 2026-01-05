@@ -59,20 +59,9 @@ class FFT_{
             fftSamplesOut.resize(nFFTPad);
             const char* error = NULL;
             bool result = simple_fft::FFT(fftSamplesIn, fftSamplesOut, nFFTPad, error);
-
             if (!result){throw std::runtime_error(error);};
 
-            /* std::cout<<"FFT In Size "<<fftSamplesIn.size()<<std::endl;
-            std::cout<<"nFFT "<<nFFT<<std::endl;
-            std::cout<<"nFFTPad "<<nFFTPad<<std::endl; */
-            //int counter = 0;
-            
             *samples = fftSamplesOut;
-
-            /* for(const auto& data : *samples){
-                std::cout<<counter <<" "<<data<<std::endl;
-                ++counter;
-            } */
         }
 
         ~FFT_() = default;
