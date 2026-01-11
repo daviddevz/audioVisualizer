@@ -11,3 +11,6 @@ Windows application using the SFML to visualize audio amplitude and frequency.
 
 ## Licenses
 This project is covered under MIT License in addition to other licenses provided by the external libraries.
+
+## Video Example
+https://youtu.be/M27f5mQ27_o 

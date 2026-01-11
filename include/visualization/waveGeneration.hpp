@@ -128,7 +128,7 @@ class WaveGeneration{
         }
 
         std::vector<double> getLogFreq(size_t sampleSize){
-            int groups = 8; // Frequency groups
+            int groups = 16; // Frequency groups
             double freqMin = static_cast<double>(sampleFreq) / sampleSize;
             double freqMax = static_cast<double>(sampleFreq) / 2; // Nyquist Sampling Frequency Theorem
 
@@ -187,7 +187,7 @@ class WaveGeneration{
                     size_t sampleSize = audioDataComp.size();
                     local.reserve(sampleSize);
 
-                    int frameCounter = 0, xMove = -300, yMove = -50;
+                    int frameCounter = 0, xMove = -350, yMove = -50;
 
                     std::vector<double> freqBins = getLogFreq(sampleSize);
                     averageFreq(audioDataComp, freqBins);
